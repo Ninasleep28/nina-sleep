@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(claude-api)",
+      "Bash(cd:*)",
+      "Bash(notepad:*)",
+      "Bash(git:*)",
+      "Bash(winget install:*)"
+    ]
+  }
+}

@@ -1,0 +1,166 @@
+import "dotenv/config";
+import express from "express";
+import Anthropic from "@anthropic-ai/sdk";
+import twilio from "twilio";
+
+// ─── Clients ────────────────────────────────────────────────────────────────
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+// ─── Conversation history per phone number ───────────────────────────────────
+// Map<phoneNumber, Anthropic.MessageParam[]>
+const conversations = new Map();
+
+const MAX_HISTORY_TURNS = 20; // keep last 20 exchanges to avoid huge context
+
+// ─── System prompt – נינה ────────────────────────────────────────────────────
+
+const SYSTEM_PROMPT = `אתה נינה – יועצת שינה AI מקצועית לתינוקות ופעוטות.
+את מדברת עברית בלבד. את חמה, אמפתית, מקצועית ולא שיפוטית.
+
+הידע שלך:
+• גישה התנהגותית (CIO/Ferber) – מגיל 6 חודשים
+• גישה עדינה (Fading / Chair Method) – מגיל 4 חודשים
+• גישת שגרה וסביבה – מתאים לכולם
+• גישה היקשרותית (Attachment-based) – ללא גיל מינימום
+
+יכולות שלך:
+1. לנתח הרגלי שינה ולספק אבחון ראשוני
+2. לבנות תוכנית שינה אישית לפי גיל, טמפרמנט ואורח חיי המשפחה
+3. לנתח שגרות הרדמה שהורים מתארים ולתת פידבק מעשי
+4. לבנות דוח לילה יומי אם ההורה שולח נתוני לילה
+5. לתת עצות לסביבת שינה (חדר, רעש לבן, טמפרטורה, תאורה)
+6. לענות על שאלות בשעה 3 בלילה בסבלנות ובאהבה
+
+כללים:
+- תמיד שאלי על גיל התינוק אם לא ידוע לך
+- אל תמליצי על שיטה מסוימת לפני שהבנת את הצרכים
+- ציני תמיד שאת לא מחליפה רופא ילדים לגבי שאלות רפואיות
+- שמרי על תשובות קצרות וברורות – הורים עייפים לא קוראים טקסטים ארוכים
+- השתמשי באמוג'ים מינימלי ורק כשזה עוזר להבהיר
+- אם ההורה מתאר מצב דחוף או מסוכן – הפני מיד לרופא`;
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getHistory(phone) {
+  if (!conversations.has(phone)) {
+    conversations.set(phone, []);
+  }
+  return conversations.get(phone);
+}
+
+function trimHistory(history) {
+  // Keep only the last MAX_HISTORY_TURNS * 2 messages (user + assistant pairs)
+  const maxMessages = MAX_HISTORY_TURNS * 2;
+  if (history.length > maxMessages) {
+    history.splice(0, history.length - maxMessages);
+  }
+}
+
+async function askClaude(phone, userMessage) {
+  const history = getHistory(phone);
+
+  // Add the new user message
+  history.push({ role: "user", content: userMessage });
+  trimHistory(history);
+
+  const response = await anthropic.messages.create({
+    model: "claude-opus-4-6",
+    max_tokens: 1024,
+    system: SYSTEM_PROMPT,
+    messages: history,
+  });
+
+  const assistantText = response.content
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("");
+
+  // Save assistant response to history
+  history.push({ role: "assistant", content: assistantText });
+  trimHistory(history);
+
+  return assistantText;
+}
+
+async function sendWhatsApp(to, body) {
+  await twilioClient.messages.create({
+    from: process.env.TWILIO_WHATSAPP_NUMBER,
+    to,
+    body,
+  });
+}
+
+// ─── Express ──────────────────────────────────────────────────────────────────
+
+const app = express();
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+// Health check
+app.get("/", (_req, res) => {
+  res.json({ status: "ok", service: "נינה – יועצת שינה AI" });
+});
+
+// Twilio WhatsApp webhook
+app.post("/webhook", async (req, res) => {
+  // Twilio sends the webhook as URL-encoded form data
+  const incomingMsg = req.body.Body?.trim();
+  const from = req.body.From; // e.g. "whatsapp:+972501234567"
+
+  if (!incomingMsg || !from) {
+    return res.status(400).send("Missing Body or From");
+  }
+
+  console.log(`[${new Date().toISOString()}] 📨 ${from}: ${incomingMsg}`);
+
+  // Respond immediately with empty TwiML so Twilio doesn't retry
+  res.set("Content-Type", "text/xml");
+  res.send("<Response></Response>");
+
+  // Process async (after response sent to Twilio)
+  try {
+    const reply = await askClaude(from, incomingMsg);
+    console.log(`[${new Date().toISOString()}] 🌙 נינה → ${from}: ${reply.slice(0, 80)}...`);
+    await sendWhatsApp(from, reply);
+  } catch (err) {
+    console.error("Error processing message:", err);
+    try {
+      await sendWhatsApp(
+        from,
+        "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"
+      );
+    } catch (sendErr) {
+      console.error("Failed to send error message:", sendErr);
+    }
+  }
+});
+
+// Reset conversation (optional utility endpoint)
+app.post("/reset/:phone", (req, res) => {
+  const phone = decodeURIComponent(req.params.phone);
+  conversations.delete(phone);
+  res.json({ ok: true, message: `שיחה אופסה עבור ${phone}` });
+});
+
+// Active conversations status
+app.get("/status", (_req, res) => {
+  const stats = [];
+  for (const [phone, history] of conversations.entries()) {
+    stats.push({ phone, turns: history.length / 2 });
+  }
+  res.json({ activeConversations: stats.length, conversations: stats });
+});
+
+// ─── Start ────────────────────────────────────────────────────────────────────
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`\n🌙 נינה פועלת על פורט ${PORT}`);
+  console.log(`   Webhook URL: http://localhost:${PORT}/webhook`);
+  console.log(`   Status:      http://localhost:${PORT}/status\n`);
+});

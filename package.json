@@ -1,0 +1,17 @@
+{
+  "name": "nina-sleep-bot",
+  "version": "1.0.0",
+  "description": "נינה – יועצת שינה AI לתינוקות, מחוברת לוואטספ דרך Twilio",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.51.0",
+    "express": "^4.18.2",
+    "twilio": "^5.3.0",
+    "dotenv": "^16.4.5"
+  }
+}
