@@ -158,9 +158,14 @@ app.get("/status", (_req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\n🌙 נינה פועלת על פורט ${PORT}`);
-  console.log(`   Webhook URL: http://localhost:${PORT}/webhook`);
-  console.log(`   Status:      http://localhost:${PORT}/status\n`);
-});
+// On Vercel we export the app; locally we call listen()
+if (process.env.VERCEL !== "1") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`\n🌙 נינה פועלת על פורט ${PORT}`);
+    console.log(`   Webhook URL: http://localhost:${PORT}/webhook`);
+    console.log(`   Status:      http://localhost:${PORT}/status\n`);
+  });
+}
+
+export default app;
