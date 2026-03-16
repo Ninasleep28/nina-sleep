@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
+import { waitUntil } from "@vercel/functions";
 
 // ─── Clients ────────────────────────────────────────────────────────────────
 
@@ -122,22 +123,27 @@ app.post("/webhook", async (req, res) => {
   res.set("Content-Type", "text/xml");
   res.send("<Response></Response>");
 
-  // Process async (after response sent to Twilio)
-  try {
-    const reply = await askClaude(from, incomingMsg);
-    console.log(`[${new Date().toISOString()}] 🌙 נינה → ${from}: ${reply.slice(0, 80)}...`);
-    await sendWhatsApp(from, reply);
-  } catch (err) {
-    console.error("Error processing message:", err);
-    try {
-      await sendWhatsApp(
-        from,
-        "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"
-      );
-    } catch (sendErr) {
-      console.error("Failed to send error message:", sendErr);
-    }
-  }
+  // waitUntil keeps the Vercel function alive after the response is sent
+  // so Claude can finish processing without hitting the 5s timeout
+  waitUntil(
+    (async () => {
+      try {
+        const reply = await askClaude(from, incomingMsg);
+        console.log(`[${new Date().toISOString()}] 🌙 נינה → ${from}: ${reply.slice(0, 80)}...`);
+        await sendWhatsApp(from, reply);
+      } catch (err) {
+        console.error("Error processing message:", err);
+        try {
+          await sendWhatsApp(
+            from,
+            "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"
+          );
+        } catch (sendErr) {
+          console.error("Failed to send error message:", sendErr);
+        }
+      }
+    })()
+  );
 });
 
 // Reset conversation (optional utility endpoint)
