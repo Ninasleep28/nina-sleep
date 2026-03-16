@@ -3,6 +3,7 @@ import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
 import { waitUntil } from "@vercel/functions";
+import { createClient } from "@supabase/supabase-js";
 
 // ─── Clients ────────────────────────────────────────────────────────────────
 
@@ -11,10 +12,10 @@ const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
-
-// ─── Conversation history per phone number ───────────────────────────────────
-// Map<phoneNumber, Anthropic.MessageParam[]>
-const conversations = new Map();
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 const MAX_HISTORY_TURNS = 20; // keep last 20 exchanges to avoid huge context
 
@@ -45,29 +46,46 @@ const SYSTEM_PROMPT = `אתה נינה – יועצת שינה AI מקצועית
 - השתמשי באמוג'ים מינימלי ורק כשזה עוזר להבהיר
 - אם ההורה מתאר מצב דחוף או מסוכן – הפני מיד לרופא`;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Supabase helpers ────────────────────────────────────────────────────────
 
-function getHistory(phone) {
-  if (!conversations.has(phone)) {
-    conversations.set(phone, []);
+async function loadHistory(phone) {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("messages")
+    .eq("phone_number", phone)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    // PGRST116 = row not found – that's fine, it's a new user
+    throw error;
   }
-  return conversations.get(phone);
+
+  return data?.messages ?? [];
 }
 
-function trimHistory(history) {
-  // Keep only the last MAX_HISTORY_TURNS * 2 messages (user + assistant pairs)
+async function saveHistory(phone, messages) {
+  // Trim to last MAX_HISTORY_TURNS pairs before saving
   const maxMessages = MAX_HISTORY_TURNS * 2;
-  if (history.length > maxMessages) {
-    history.splice(0, history.length - maxMessages);
-  }
+  const trimmed = messages.length > maxMessages
+    ? messages.slice(messages.length - maxMessages)
+    : messages;
+
+  const { error } = await supabase
+    .from("conversations")
+    .upsert(
+      { phone_number: phone, messages: trimmed },
+      { onConflict: "phone_number" }
+    );
+
+  if (error) throw error;
 }
+
+// ─── Claude ──────────────────────────────────────────────────────────────────
 
 async function askClaude(phone, userMessage) {
-  const history = getHistory(phone);
+  const history = await loadHistory(phone);
 
-  // Add the new user message
   history.push({ role: "user", content: userMessage });
-  trimHistory(history);
 
   const response = await anthropic.messages.create({
     model: "claude-opus-4-6",
@@ -81,9 +99,9 @@ async function askClaude(phone, userMessage) {
     .map((b) => b.text)
     .join("");
 
-  // Save assistant response to history
   history.push({ role: "assistant", content: assistantText });
-  trimHistory(history);
+
+  await saveHistory(phone, history);
 
   return assistantText;
 }
@@ -146,19 +164,33 @@ app.post("/webhook", async (req, res) => {
   );
 });
 
-// Reset conversation (optional utility endpoint)
-app.post("/reset/:phone", (req, res) => {
+// Reset conversation
+app.post("/reset/:phone", async (req, res) => {
   const phone = decodeURIComponent(req.params.phone);
-  conversations.delete(phone);
+  const { error } = await supabase
+    .from("conversations")
+    .delete()
+    .eq("phone_number", phone);
+
+  if (error) return res.status(500).json({ ok: false, error: error.message });
   res.json({ ok: true, message: `שיחה אופסה עבור ${phone}` });
 });
 
 // Active conversations status
-app.get("/status", (_req, res) => {
-  const stats = [];
-  for (const [phone, history] of conversations.entries()) {
-    stats.push({ phone, turns: history.length / 2 });
-  }
+app.get("/status", async (_req, res) => {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("phone_number, messages, updated_at")
+    .order("updated_at", { ascending: false });
+
+  if (error) return res.status(500).json({ ok: false, error: error.message });
+
+  const stats = data.map((row) => ({
+    phone: row.phone_number,
+    turns: row.messages.length / 2,
+    lastActivity: row.updated_at,
+  }));
+
   res.json({ activeConversations: stats.length, conversations: stats });
 });
 
