@@ -5,7 +5,8 @@
       "Bash(cd:*)",
       "Bash(notepad:*)",
       "Bash(git:*)",
-      "Bash(winget install:*)"
+      "Bash(winget install:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

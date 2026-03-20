@@ -171,6 +171,10 @@
 
   <!-- Email/Password form -->
   <div id="email-form">
+    <div class="form-group" id="fullname-group" style="display:none">
+      <label>שם מלא</label>
+      <input type="text" id="fullname" placeholder="ישראל ישראלי" />
+    </div>
     <div class="form-group">
       <label>אימייל</label>
       <input type="email" id="email" placeholder="your@email.com" />
@@ -182,9 +186,9 @@
     <button class="btn-primary" onclick="handleEmailAuth()">המשך</button>
   </div>
 
-  <div class="divider">או</div>
+  <div class="divider" id="google-divider">או</div>
 
-  <button class="btn-google" onclick="handleGoogle()">
+  <button class="btn-google" id="google-btn" onclick="handleGoogle()">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
     המשך עם Google
   </button>
@@ -198,7 +202,7 @@
 
 <script>
   const SUPABASE_URL = 'https://qvuewochgjttvpgtwsir.supabase.co';
-  const SUPABASE_ANON_KEY = 'הכנס כאן את ה-ANON KEY שלך מ-Supabase';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Hhs1AdWwpxqf8EBTcOG3uA_PIkRFdZn';
 
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -214,6 +218,12 @@
     switchText.innerHTML = tab === 'login'
       ? 'אין לך חשבון? <a onclick="switchTab(\'signup\')">הרשמה</a>'
       : 'כבר יש לך חשבון? <a onclick="switchTab(\'login\')">כניסה</a>';
+
+    const isSignup = tab === 'signup';
+    document.getElementById('fullname-group').style.display = isSignup ? 'block' : 'none';
+    document.getElementById('google-divider').style.display = isSignup ? 'none' : 'flex';
+    document.getElementById('google-btn').style.display = isSignup ? 'none' : 'flex';
+
     showMessage('', '');
   }
 
@@ -231,9 +241,14 @@
     if (!email || !password) return showMessage('נא למלא אימייל וסיסמה', 'error');
 
     if (currentTab === 'signup') {
-      const { error } = await sb.auth.signUp({ email, password });
+      const fullName = document.getElementById('fullname').value.trim();
+      if (!fullName) return showMessage('נא למלא שם מלא', 'error');
+      const { error } = await sb.auth.signUp({
+        email, password,
+        options: { data: { full_name: fullName } }
+      });
       if (error) return showMessage(error.message, 'error');
-      showMessage('נשלח אליך מייל אימות — בדוק את תיבת הדואר שלך 📬', 'success');
+      window.location.href = '/quiz.html';
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) return showMessage('אימייל או סיסמה שגויים', 'error');
@@ -242,17 +257,19 @@
   }
 
   async function handleGoogle() {
-    const { error } = await sb.auth.signInWithOAuth({
+    const { data, error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/quiz.html' }
+      options: { redirectTo: window.location.origin + '/auth.html' }
     });
-    if (error) showMessage(error.message, 'error');
+    if (error) {
+      showMessage(error.message, 'error');
+      return;
+    }
+    // העבר את המשתמש ל-Google רשת הזיהוי
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   }
-
-  // אם המשתמש כבר מחובר — שלח אותו לדף הראשי
-  sb.auth.getSession().then(({ data }) => {
-    if (data.session) window.location.href = '/quiz.html';
-  });
 </script>
 </body>
 </html>

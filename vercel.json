@@ -2,12 +2,22 @@
   "version": 2,
   "builds": [
     { "src": "server.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" }
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "auth.html", "use": "@vercel/static" },
+    { "src": "quiz.html", "use": "@vercel/static" },
+    { "src": "payment.html", "use": "@vercel/static" },
+    { "src": "success.html", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/webhook", "dest": "/server.js" },
+    { "src": "/config", "dest": "/server.js" },
+    { "src": "/stripe-checkout", "dest": "/server.js" },
     { "src": "/status", "dest": "/server.js" },
     { "src": "/reset/(.*)", "dest": "/server.js" },
+    { "src": "/auth.html", "dest": "/auth.html" },
+    { "src": "/quiz.html", "dest": "/quiz.html" },
+    { "src": "/payment.html", "dest": "/payment.html" },
+    { "src": "/success.html", "dest": "/success.html" },
     { "src": "/", "dest": "/index.html" }
   ]
 }

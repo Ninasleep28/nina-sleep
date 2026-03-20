@@ -2,8 +2,14 @@ import "dotenv/config";
 import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
+import Stripe from "stripe";
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@supabase/supabase-js";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ─── Clients ────────────────────────────────────────────────────────────────
 
@@ -12,6 +18,7 @@ const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -120,9 +127,69 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// Health check
-app.get("/", (_req, res) => {
-  res.json({ status: "ok", service: "נינה – יועצת שינה AI" });
+// ─── Static Files ──────────────────────────────────────────────────────────
+
+app.get("/", (req, res) => {
+  res.sendFile(join(__dirname, 'index.html'));
+});
+
+app.get("/auth.html", (req, res) => {
+  res.sendFile(join(__dirname, 'auth.html'));
+});
+
+app.get("/quiz.html", (req, res) => {
+  res.sendFile(join(__dirname, 'quiz.html'));
+});
+
+app.get("/payment.html", (req, res) => {
+  res.sendFile(join(__dirname, 'payment.html'));
+});
+
+app.get("/success.html", (req, res) => {
+  res.sendFile(join(__dirname, 'success.html'));
+});
+
+// ─── Public Config Endpoint ────────────────────────────────────────────────
+
+app.get("/config", (req, res) => {
+  // Return public Stripe config
+  res.json({
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+  });
+});
+
+// ─── Stripe Checkout ───────────────────────────────────────────────────────
+
+app.post("/stripe-checkout", async (req, res) => {
+  const { email, userId } = req.body;
+
+  if (!email || !userId) {
+    return res.status(400).json({ message: "Missing email or userId" });
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "subscription",
+      customer_email: email,
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID, // Monthly subscription price ID
+          quantity: 1,
+        },
+      ],
+      success_url: process.env.STRIPE_SUCCESS_URL || `${process.env.VERCEL_URL || "http://localhost:3000"}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.VERCEL_URL || "http://localhost:3000"}/payment.html`,
+      metadata: {
+        userId: userId,
+      },
+    });
+
+    res.json({ checkoutUrl: session.url });
+  } catch (error) {
+    console.error("Stripe error:", error);
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Twilio WhatsApp webhook
