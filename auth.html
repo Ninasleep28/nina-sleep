@@ -209,6 +209,14 @@
 
   let currentTab = 'login';
 
+  // בדוק אם המשתמש חזר מ-Google OAuth עם access_token בhash
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    // המתן קצת כדי שהsession יתבסס
+    setTimeout(() => {
+      window.location.href = '/quiz.html';
+    }, 300);
+  }
+
   function switchTab(tab) {
     currentTab = tab;
     document.querySelectorAll('.tab').forEach((t, i) => {
