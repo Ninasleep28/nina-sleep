@@ -24,7 +24,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const MAX_HISTORY_TURNS = 20; // keep last 20 exchanges to avoid huge context
+const MAX_HISTORY_TURNS = 20;
 
 // ─── System prompt – נינה ────────────────────────────────────────────────────
 
@@ -62,16 +62,12 @@ async function loadHistory(phone) {
     .eq("phone_number", phone)
     .single();
 
-  if (error && error.code !== "PGRST116") {
-    // PGRST116 = row not found – that's fine, it's a new user
-    throw error;
-  }
+  if (error && error.code !== "PGRST116") throw error;
 
   return data?.messages ?? [];
 }
 
 async function saveHistory(phone, messages) {
-  // Trim to last MAX_HISTORY_TURNS pairs before saving
   const maxMessages = MAX_HISTORY_TURNS * 2;
   const trimmed = messages.length > maxMessages
     ? messages.slice(messages.length - maxMessages)
@@ -85,6 +81,21 @@ async function saveHistory(phone, messages) {
     );
 
   if (error) throw error;
+}
+
+// שמירת מספר וואטספ של משתמש ב-Supabase
+async function saveUserWhatsApp(userId, whatsappNumber, email) {
+  const { error } = await supabase
+    .from("users")
+    .upsert(
+      { id: userId, whatsapp_number: whatsappNumber, email: email, is_premium: true },
+      { onConflict: "id" }
+    );
+
+  if (error) {
+    console.error("Error saving user WhatsApp:", error);
+    throw error;
+  }
 }
 
 // ─── Claude ──────────────────────────────────────────────────────────────────
@@ -129,30 +140,15 @@ app.use(express.json());
 
 // ─── Static Files ──────────────────────────────────────────────────────────
 
-app.get("/", (req, res) => {
-  res.sendFile(join(__dirname, 'index.html'));
-});
-
-app.get("/auth.html", (req, res) => {
-  res.sendFile(join(__dirname, 'auth.html'));
-});
-
-app.get("/quiz.html", (req, res) => {
-  res.sendFile(join(__dirname, 'quiz.html'));
-});
-
-app.get("/payment.html", (req, res) => {
-  res.sendFile(join(__dirname, 'payment.html'));
-});
-
-app.get("/success.html", (req, res) => {
-  res.sendFile(join(__dirname, 'success.html'));
-});
+app.get("/", (req, res) => res.sendFile(join(__dirname, 'index.html')));
+app.get("/auth.html", (req, res) => res.sendFile(join(__dirname, 'auth.html')));
+app.get("/quiz.html", (req, res) => res.sendFile(join(__dirname, 'quiz.html')));
+app.get("/payment.html", (req, res) => res.sendFile(join(__dirname, 'payment.html')));
+app.get("/success.html", (req, res) => res.sendFile(join(__dirname, 'success.html')));
 
 // ─── Public Config Endpoint ────────────────────────────────────────────────
 
 app.get("/config", (req, res) => {
-  // Return public Stripe config
   res.json({
     stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
   });
@@ -161,10 +157,14 @@ app.get("/config", (req, res) => {
 // ─── Stripe Checkout ───────────────────────────────────────────────────────
 
 app.post("/stripe-checkout", async (req, res) => {
-  const { email, userId } = req.body;
+  const { email, userId, whatsappNumber } = req.body;
 
   if (!email || !userId) {
     return res.status(400).json({ message: "Missing email or userId" });
+  }
+
+  if (!whatsappNumber) {
+    return res.status(400).json({ message: "Missing WhatsApp number" });
   }
 
   try {
@@ -174,7 +174,7 @@ app.post("/stripe-checkout", async (req, res) => {
       customer_email: email,
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID, // Monthly subscription price ID
+          price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],
@@ -182,6 +182,8 @@ app.post("/stripe-checkout", async (req, res) => {
       cancel_url: `https://ninababysleep.com/payment.html`,
       metadata: {
         userId: userId,
+        whatsappNumber: whatsappNumber,
+        email: email,
       },
     });
 
@@ -192,11 +194,58 @@ app.post("/stripe-checkout", async (req, res) => {
   }
 });
 
-// Twilio WhatsApp webhook
+// ─── Stripe Webhook ───────────────────────────────────────────────────────
+
+app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error("Webhook signature error:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // טיפול באירוע תשלום מוצלח
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const { userId, whatsappNumber, email } = session.metadata;
+
+    console.log(`✅ תשלום הצליח! userId: ${userId}, whatsapp: ${whatsappNumber}`);
+
+    waitUntil(
+      (async () => {
+        try {
+          // שמור את מספר הוואטספ ב-Supabase
+          await saveUserWhatsApp(userId, whatsappNumber, email);
+
+          // שלח הודעת ברוכים הבאים
+          await sendWhatsApp(
+            whatsappNumber,
+            `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 לעזור לך עם שינה של התינוק.\n\nספרי לי – מה הגיל של הילד שלך ומה האתגר הכי גדול שלך עכשיו בשינה?`
+          );
+
+          console.log(`✅ הודעת ברוכים הבאים נשלחה ל-${whatsappNumber}`);
+        } catch (err) {
+          console.error("Error processing payment webhook:", err);
+        }
+      })()
+    );
+  }
+
+  res.json({ received: true });
+});
+
+// ─── Twilio WhatsApp webhook ───────────────────────────────────────────────
+
 app.post("/webhook", async (req, res) => {
-  // Twilio sends the webhook as URL-encoded form data
   const incomingMsg = req.body.Body?.trim();
-  const from = req.body.From; // e.g. "whatsapp:+972501234567"
+  const from = req.body.From;
 
   if (!incomingMsg || !from) {
     return res.status(400).send("Missing Body or From");
@@ -204,12 +253,9 @@ app.post("/webhook", async (req, res) => {
 
   console.log(`[${new Date().toISOString()}] 📨 ${from}: ${incomingMsg}`);
 
-  // Respond immediately with empty TwiML so Twilio doesn't retry
   res.set("Content-Type", "text/xml");
   res.send("<Response></Response>");
 
-  // waitUntil keeps the Vercel function alive after the response is sent
-  // so Claude can finish processing without hitting the 5s timeout
   waitUntil(
     (async () => {
       try {
@@ -219,10 +265,7 @@ app.post("/webhook", async (req, res) => {
       } catch (err) {
         console.error("Error processing message:", err);
         try {
-          await sendWhatsApp(
-            from,
-            "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"
-          );
+          await sendWhatsApp(from, "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙");
         } catch (sendErr) {
           console.error("Failed to send error message:", sendErr);
         }
@@ -231,7 +274,8 @@ app.post("/webhook", async (req, res) => {
   );
 });
 
-// Reset conversation
+// ─── Reset conversation ────────────────────────────────────────────────────
+
 app.post("/reset/:phone", async (req, res) => {
   const phone = decodeURIComponent(req.params.phone);
   const { error } = await supabase
@@ -243,7 +287,8 @@ app.post("/reset/:phone", async (req, res) => {
   res.json({ ok: true, message: `שיחה אופסה עבור ${phone}` });
 });
 
-// Active conversations status
+// ─── Status ────────────────────────────────────────────────────────────────
+
 app.get("/status", async (_req, res) => {
   const { data, error } = await supabase
     .from("conversations")
@@ -263,7 +308,6 @@ app.get("/status", async (_req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 
-// On Vercel we export the app; locally we call listen()
 if (process.env.VERCEL !== "1") {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
