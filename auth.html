@@ -130,7 +130,6 @@
     }
 
     .btn-google:hover { opacity: 0.9; }
-
     .btn-google img { width: 20px; height: 20px; }
 
     .message {
@@ -169,7 +168,6 @@
     <button class="tab" onclick="switchTab('signup')">הרשמה</button>
   </div>
 
-  <!-- Email/Password form -->
   <div id="email-form">
     <div class="form-group" id="fullname-group" style="display:none">
       <label>שם מלא</label>
@@ -209,13 +207,12 @@
 
   let currentTab = 'login';
 
-  // בדוק אם המשתמש חזר מ-Google OAuth עם access_token בhash
-  if (window.location.hash && window.location.hash.includes('access_token')) {
-    // המתן קצת כדי שהsession יתבסס
-    setTimeout(() => {
+  // ✅ מאזין לשינוי session - ברגע שמשתמש מחובר מפנה לשאלון
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
       window.location.href = '/quiz.html';
-    }, 300);
-  }
+    }
+  });
 
   function switchTab(tab) {
     currentTab = tab;
@@ -265,18 +262,13 @@
   }
 
   async function handleGoogle() {
-    const { data, error } = await sb.auth.signInWithOAuth({
+    const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth.html' }
+      options: {
+        redirectTo: window.location.origin + '/auth.html'
+      }
     });
-    if (error) {
-      showMessage(error.message, 'error');
-      return;
-    }
-    // העבר את המשתמש ל-Google רשת הזיהוי
-    if (data?.url) {
-      window.location.href = data.url;
-    }
+    if (error) showMessage(error.message, 'error');
   }
 </script>
 </body>
