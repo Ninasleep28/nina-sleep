@@ -135,6 +135,51 @@ async function sendWhatsApp(to, body) {
 // ─── Express ──────────────────────────────────────────────────────────────────
 
 const app = express();
+
+// ─── Stripe Webhook (חייב להיות לפני express.json!) ──────────────────────────
+
+app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error("Webhook signature error:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const { userId, whatsappNumber, email } = session.metadata;
+
+    console.log(`✅ תשלום הצליח! userId: ${userId}, whatsapp: ${whatsappNumber}`);
+
+    waitUntil(
+      (async () => {
+        try {
+          await saveUserWhatsApp(userId, whatsappNumber, email);
+          await sendWhatsApp(
+            whatsappNumber,
+            `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 לעזור לך עם שינה של התינוק.\n\nספרי לי – מה הגיל של הילד שלך ומה האתגר הכי גדול שלך עכשיו בשינה?`
+          );
+          console.log(`✅ הודעת ברוכים הבאים נשלחה ל-${whatsappNumber}`);
+        } catch (err) {
+          console.error("Error processing payment webhook:", err);
+        }
+      })()
+    );
+  }
+
+  res.json({ received: true });
+});
+
+// ─── שאר ה-Middleware ─────────────────────────────────────────────────────────
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
