@@ -6,6 +6,7 @@
   <title>שאלון שינה | ניינה</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -83,7 +84,6 @@
 <div class="wrap">
   <div class="brand">שאלון שינה חינמי · <span>ניינה</span></div>
 
-  <!-- INTRO -->
   <div class="screen active" id="screen-intro">
     <div class="card">
       <div class="moon">🌙</div>
@@ -98,7 +98,6 @@
     </div>
   </div>
 
-  <!-- Q1 גיל -->
   <div class="screen" id="screen-q1">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:16%"></div></div><span class="prog-label">1 / 6</span></div>
     <div class="card">
@@ -115,7 +114,6 @@
     </div>
   </div>
 
-  <!-- Q2 בעיה עיקרית -->
   <div class="screen" id="screen-q2">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:33%"></div></div><span class="prog-label">2 / 6</span></div>
     <div class="card">
@@ -133,7 +131,6 @@
     </div>
   </div>
 
-  <!-- Q3 סגנון הורה -->
   <div class="screen" id="screen-q3">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:50%"></div></div><span class="prog-label">3 / 6</span></div>
     <div class="card">
@@ -150,7 +147,6 @@
     </div>
   </div>
 
-  <!-- Q4 עם מי ישן -->
   <div class="screen" id="screen-q4">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:66%"></div></div><span class="prog-label">4 / 6</span></div>
     <div class="card">
@@ -167,7 +163,6 @@
     </div>
   </div>
 
-  <!-- Q5 מה ניסיתם multi -->
   <div class="screen" id="screen-q5">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:83%"></div></div><span class="prog-label">5 / 6</span></div>
     <div class="card">
@@ -186,7 +181,6 @@
     </div>
   </div>
 
-  <!-- Q6 רפואי -->
   <div class="screen" id="screen-q6">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div><span class="prog-label">6 / 6</span></div>
     <div class="card">
@@ -203,7 +197,6 @@
     </div>
   </div>
 
-  <!-- GATE רפואי -->
   <div class="screen" id="screen-gate-medical">
     <div class="card" style="text-align:center">
       <div class="gate-icon">⚕️</div>
@@ -218,7 +211,6 @@
     </div>
   </div>
 
-  <!-- RESULTS -->
   <div class="screen" id="screen-results">
     <div class="card">
       <div class="res-head">
@@ -245,6 +237,22 @@
 </div>
 
 <script>
+  const SUPABASE_URL = 'https://qvuewochgjttvpgtwsir.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Hhs1AdWwpxqf8EBTcOG3uA_PIkRFdZn';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Funnel Tracking
+  async function trackPage() {
+    try {
+      let sessionId = localStorage.getItem('nina_session');
+      if (!sessionId) { sessionId = crypto.randomUUID(); localStorage.setItem('nina_session', sessionId); }
+      const { data: { session } } = await sb.auth.getSession();
+      await sb.from('funnel_events').insert({ session_id: sessionId, page: 'quiz', user_id: session?.user?.id || null });
+    } catch (e) {}
+  }
+  trackPage();
+
 const A = {};
 const tried = new Set();
 
@@ -316,7 +324,6 @@ function showResults(){
   }
 
   if(room==='parents') body+=' השינה בחדר ההורים יכולה להוסיף שכבה — אבל זה ממש לא מכשול.';
-
   if(tried.has('cio') && style==='no_cry') insight+=' שמנו לב שניסיתם CIO אבל זה לא מתאים לך — אפשר בהחלט להגיע לאותה מטרה בגישה הרבה יותר עדינה.';
   else if(tried.has('nothing')) insight+=' עדיין לא ניסיתם כלום — יש לנו מקום טוב להתחיל מאפס.';
 
