@@ -179,7 +179,7 @@ app.post("/stripe-checkout", async (req, res) => {
         },
       ],
       success_url: `https://ninababysleep.com/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.VERCEL_URL || "http://localhost:3000"}/payment.html`,
+      cancel_url: `https://ninababysleep.com/payment.html`,
       metadata: {
         userId: userId,
       },
