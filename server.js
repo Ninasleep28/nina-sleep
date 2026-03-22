@@ -2,6 +2,7 @@
 // 🌙 NINA BABY SLEEP BOT
 // Deployed on Vercel | Supabase + Stripe + Twilio + Claude Haiku
 // ──────────────────────────────────────────────────────────────────────────────────
+import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
 import Stripe from "stripe";
