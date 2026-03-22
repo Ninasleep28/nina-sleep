@@ -152,7 +152,7 @@
     if (event === 'SIGNED_IN' && session) {
       trackPage(session.user.id);
       saveUserToDB(session.user.id, session.user.email);
-      window.location.href = '/quiz.html';
+      window.location.href = '/dashboard.html';
     }
   });
 
@@ -188,18 +188,18 @@
       if (!fullName) return showMessage('נא למלא שם מלא', 'error');
       const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
       if (error) return showMessage(error.message, 'error');
-      window.location.href = '/quiz.html';
+      window.location.href = '/dashboard.html';
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) return showMessage('אימייל או סיסמה שגויים', 'error');
-      window.location.href = '/quiz.html';
+      window.location.href = '/dashboard.html';
     }
   }
 
   async function handleGoogle() {
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth.html' }
+      options: { redirectTo: window.location.origin + '/dashboard.html' }
     });
     if (error) showMessage(error.message, 'error');
   }
