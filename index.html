@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>נינה – יועצת שינה AI לתינוקות</title>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -36,7 +37,6 @@
       line-height: 1.7;
     }
 
-    /* ──────────── NAV ──────────── */
     nav {
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
@@ -65,7 +65,6 @@
     }
     .nav-cta:hover { background: var(--purple-mid) !important; color: var(--white) !important; }
 
-    /* ──────────── HELPERS ──────────── */
     .section-tag {
       display: inline-block;
       background: var(--purple-light); color: var(--purple);
@@ -85,7 +84,6 @@
     section { padding: 5.5rem 1.5rem; }
     .center { text-align: center; }
 
-    /* ──────────── HERO ──────────── */
     .hero {
       min-height: 93vh;
       display: flex; align-items: center; justify-content: center;
@@ -140,7 +138,6 @@
     .stat strong { display: block; font-size: 1.7rem; font-weight: 900; color: var(--purple); }
     .stat span { font-size: 0.82rem; color: var(--text-soft); }
 
-    /* ──────────── COMPARISON TABLE ──────────── */
     .comparison { background: var(--white); }
     .comparison-inner { max-width: 860px; margin: 3rem auto 0; }
     .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
@@ -170,7 +167,6 @@
     }
     .table-note strong { color: var(--purple); font-style: normal; }
 
-    /* ──────────── PROCESS ──────────── */
     .process { background: var(--purple-pale); }
     .steps {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
@@ -194,7 +190,6 @@
     .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
     .step p  { font-size: 0.88rem; color: var(--text-soft); line-height: 1.6; }
 
-    /* ──────────── APPROACHES ──────────── */
     .approaches { background: var(--white); }
     .approach-cards {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
@@ -218,7 +213,6 @@
     }
     .acard p { font-size: 0.88rem; color: var(--text-soft); line-height: 1.65; }
 
-    /* ──────────── TESTIMONIALS ──────────── */
     .testimonials { background: var(--sand); }
     .tcard-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(270px,1fr));
@@ -245,7 +239,6 @@
     .author-name  { font-weight: 700; font-size: 0.9rem; }
     .author-meta  { font-size: 0.78rem; color: var(--text-soft); }
 
-    /* ──────────── CTA FINAL ──────────── */
     .cta-final {
       background: linear-gradient(140deg, var(--purple) 0%, #9b7ad0 100%);
       text-align: center; padding: 5.5rem 1.5rem;
@@ -262,7 +255,6 @@
     .btn-white:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(0,0,0,0.25); }
     .cta-sub { margin-top: 1.1rem; font-size: 0.85rem; color: rgba(255,255,255,0.68); }
 
-    /* ──────────── FOOTER ──────────── */
     footer {
       background: var(--text); color: rgba(255,255,255,0.55);
       text-align: center; padding: 2.2rem 1.5rem; font-size: 0.83rem;
@@ -273,7 +265,6 @@
     }
     footer p + p { margin-top: 0.35rem; }
 
-    /* ──────────── RESPONSIVE ──────────── */
     @media (max-width: 680px) {
       nav { padding: 0.9rem 1.2rem; }
       .nav-links { display: none; }
@@ -285,7 +276,6 @@
 </head>
 <body>
 
-<!-- ── NAV ── -->
 <nav>
   <div class="logo">
     <span class="logo-moon">🌙</span>
@@ -300,7 +290,6 @@
   </div>
 </nav>
 
-<!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-badge">
@@ -310,22 +299,20 @@
     <p class="hero-desc">
       נינה היא יועצת שינה AI שמלווה אתכם בוואטספ – 24/7, עם תוכנית אישית, דוחות לילה יומיים וניתוח מעמיק. בשבריר מעלות של יועצת רגילה.
     </p>
-    <a href="/auth.html" class="btn-primary">✨ התחל עכשיו – 99 ₪ לחודש</a>
+    <a href="/auth.html" class="btn-primary">✨ התחל עכשיו – 249 ₪ לחודש</a>
     <p class="hero-note">ניסיון חינם ל-7 ימים · ללא התחייבות · ביטול בכל עת</p>
     <div class="hero-stats">
       <div class="stat"><strong>+1,400</strong><span>משפחות מרוצות</span></div>
       <div class="stat"><strong>24/7</strong><span>זמינות מלאה</span></div>
-      <div class="stat"><strong>99 ₪</strong><span>לחודש בלבד</span></div>
+      <div class="stat"><strong>249 ₪</strong><span>לחודש בלבד</span></div>
     </div>
   </div>
 </section>
 
-<!-- ── COMPARISON ── -->
 <section class="comparison center" id="comparison">
   <span class="section-tag">השוואה</span>
   <h2>נינה לעומת יועצת שינה רגילה</h2>
   <p class="sub">למה לבחור בין יעילות לנגישות? נינה נותנת לכם את שניהם.</p>
-
   <div class="comparison-inner">
     <div class="table-wrap">
       <table>
@@ -369,7 +356,7 @@
           </tr>
           <tr>
             <td>מחיר</td>
-            <td><span class="val-nina">99 ₪ לחודש</span></td>
+            <td><span class="val-nina">249 ₪ לחודש</span></td>
             <td><span class="val-other">1,500–2,500 ₪ חד-פעמי</span></td>
           </tr>
         </tbody>
@@ -381,12 +368,10 @@
   </div>
 </section>
 
-<!-- ── PROCESS ── -->
 <section class="process center" id="process">
   <span class="section-tag">התהליך</span>
   <h2>ארבעה שלבים – ומתחילים</h2>
   <p class="sub">פשוט, מהיר, ומבלי לצאת מהבית.</p>
-
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
@@ -404,7 +389,7 @@
       <div class="step-num">3</div>
       <span class="step-icon">💳</span>
       <h3>תשלום ונינה מצטרפת לוואטספ</h3>
-      <p>לאחר התשלום נינה מתווספת לקבוצת הוואטספ המשפחתית שלכם ומתחילה ללמוד את הדינמיקה.</p>
+      <p>לאחר התשלום נינה שולחת לכם הודעה בוואטספ ומתחילה ללמוד את הדינמיקה המשפחתית.</p>
     </div>
     <div class="step">
       <div class="step-num">4</div>
@@ -415,12 +400,10 @@
   </div>
 </section>
 
-<!-- ── APPROACHES ── -->
 <section class="approaches center" id="approaches">
   <span class="section-tag">גישות שינה</span>
   <h2>נינה מכירה את כולן</h2>
   <p class="sub">אין גישה אחת שמתאימה לכולם. נינה יודעת לעבוד עם כל שיטה – ולשלב ביניהן.</p>
-
   <div class="approach-cards">
     <div class="acard">
       <div class="acard-icon">🏋️</div>
@@ -449,12 +432,10 @@
   </div>
 </section>
 
-<!-- ── TESTIMONIALS ── -->
 <section class="testimonials center" id="testimonials">
   <span class="section-tag">המלצות</span>
   <h2>מה אומרות המשפחות</h2>
   <p class="sub">הורים אמיתיים שכבר ישנים טוב יותר.</p>
-
   <div class="tcard-grid">
     <div class="tcard">
       <div class="tcard-stars">★★★★★</div>
@@ -467,10 +448,9 @@
         </div>
       </div>
     </div>
-
     <div class="tcard">
       <div class="tcard-stars">★★★★★</div>
-      <p>ניסיתי יועצת פרטית ב-2,000 ₪ ולא ראיתי תוצאות. נינה עשתה יותר ב-99 ₪ לחודש – בעיקר כי היא זמינה בשעה שלוש בלילה כשבאמת צריך עזרה, לא רק בשיחת זום שבועית.</p>
+      <p>ניסיתי יועצת פרטית ב-2,000 ₪ ולא ראיתי תוצאות. נינה עשתה יותר ב-249 ₪ לחודש – בעיקר כי היא זמינה בשעה שלוש בלילה כשבאמת צריך עזרה, לא רק בשיחת זום שבועית.</p>
       <div class="tcard-author">
         <div class="avatar av2">👨</div>
         <div>
@@ -479,7 +459,6 @@
         </div>
       </div>
     </div>
-
     <div class="tcard">
       <div class="tcard-stars">★★★★★</div>
       <p>אהבתי שנינה לא כפתה עלינו שיטה אחת. היא שאלה שאלות, הקשיבה, והתאימה את הגישה לאישיות של הבת שלנו ולאיך שאנחנו כמשפחה פועלים. הרגשנו שיש מישהו שבאמת מבין אותנו.</p>
@@ -494,20 +473,42 @@
   </div>
 </section>
 
-<!-- ── CTA FINAL ── -->
 <section class="cta-final" id="cta">
   <h2>מוכנים לשינה טובה?</h2>
   <p>הצטרפו לאלפי משפחות שכבר ישנות טוב יותר עם נינה. 7 ימי ניסיון חינם – בלי כרטיס אשראי.</p>
   <a href="/auth.html" class="btn-white">🌙 התחל עכשיו</a>
-  <p class="cta-sub">99 ₪ לחודש לאחר הניסיון · ביטול בכל עת</p>
+  <p class="cta-sub">249 ₪ לחודש לאחר הניסיון · ביטול בכל עת</p>
 </section>
 
-<!-- ── FOOTER ── -->
 <footer>
   <div class="footer-logo">🌙 נינה – יועצת שינה AI</div>
   <p>© 2026 נינה. כל הזכויות שמורות.</p>
   <p>המידע באתר אינו מחליף ייעוץ רפואי מקצועי.</p>
 </footer>
 
+<script>
+  const SUPABASE_URL = 'https://qvuewochgjttvpgtwsir.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Hhs1AdWwpxqf8EBTcOG3uA_PIkRFdZn';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Funnel Tracking
+  async function trackPage() {
+    try {
+      let sessionId = localStorage.getItem('nina_session');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('nina_session', sessionId);
+      }
+      const { data: { session } } = await sb.auth.getSession();
+      await sb.from('funnel_events').insert({
+        session_id: sessionId,
+        page: 'index',
+        user_id: session?.user?.id || null
+      });
+    } catch (e) {}
+  }
+  trackPage();
+</script>
 </body>
 </html>

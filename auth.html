@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
@@ -17,7 +16,6 @@
       justify-content: center;
       padding: 20px;
     }
-
     .card {
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(12px);
@@ -29,12 +27,9 @@
       color: white;
       text-align: center;
     }
-
     .moon { font-size: 48px; margin-bottom: 12px; }
-
     h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
     p.subtitle { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 32px; }
-
     .tabs {
       display: flex;
       background: rgba(255,255,255,0.08);
@@ -42,132 +37,62 @@
       padding: 4px;
       margin-bottom: 24px;
     }
-
     .tab {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.5);
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: all 0.2s;
+      flex: 1; padding: 8px; border: none;
+      background: transparent; color: rgba(255,255,255,0.5);
+      font-size: 14px; cursor: pointer; border-radius: 10px; transition: all 0.2s;
     }
-
-    .tab.active {
-      background: rgba(255,255,255,0.15);
-      color: white;
-      font-weight: 600;
-    }
-
+    .tab.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
     .form-group { margin-bottom: 16px; text-align: right; }
-
     label { display: block; font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
-
     input {
-      width: 100%;
-      padding: 12px 16px;
+      width: 100%; padding: 12px 16px;
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 12px;
-      color: white;
-      font-size: 15px;
-      outline: none;
-      transition: border 0.2s;
+      border-radius: 12px; color: white; font-size: 15px; outline: none; transition: border 0.2s;
     }
-
     input:focus { border-color: rgba(255,255,255,0.4); }
     input::placeholder { color: rgba(255,255,255,0.3); }
-
     .btn-primary {
-      width: 100%;
-      padding: 13px;
+      width: 100%; padding: 13px;
       background: linear-gradient(135deg, #667eea, #764ba2);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 4px;
-      transition: opacity 0.2s;
+      border: none; border-radius: 12px; color: white;
+      font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; transition: opacity 0.2s;
     }
-
     .btn-primary:hover { opacity: 0.9; }
-
     .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 20px 0;
-      color: rgba(255,255,255,0.3);
-      font-size: 13px;
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0; color: rgba(255,255,255,0.3); font-size: 13px;
     }
-
     .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,0.1);
+      content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
     }
-
     .btn-google {
-      width: 100%;
-      padding: 12px;
-      background: white;
-      border: none;
-      border-radius: 12px;
-      color: #333;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: opacity 0.2s;
+      width: 100%; padding: 12px; background: white; border: none;
+      border-radius: 12px; color: #333; font-size: 15px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 10px; transition: opacity 0.2s;
     }
-
     .btn-google:hover { opacity: 0.9; }
     .btn-google img { width: 20px; height: 20px; }
-
     .message {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      display: none;
+      margin-top: 16px; padding: 12px; border-radius: 10px; font-size: 14px; display: none;
     }
-
     .message.success { background: rgba(72,199,142,0.2); color: #48c78e; }
-    .message.error   { background: rgba(255,100,100,0.2); color: #ff6464; }
-
-    .switch-text {
-      margin-top: 20px;
-      font-size: 13px;
-      color: rgba(255,255,255,0.5);
-    }
-
-    .switch-text a {
-      color: #a78bfa;
-      cursor: pointer;
-      text-decoration: underline;
-    }
+    .message.error { background: rgba(255,100,100,0.2); color: #ff6464; }
+    .switch-text { margin-top: 20px; font-size: 13px; color: rgba(255,255,255,0.5); }
+    .switch-text a { color: #a78bfa; cursor: pointer; text-decoration: underline; }
   </style>
 </head>
 <body>
-
 <div class="card">
   <div class="moon">🌙</div>
   <h1>לילה טוב</h1>
   <p class="subtitle">יועצת השינה החכמה שלך</p>
-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('login')">כניסה</button>
     <button class="tab" onclick="switchTab('signup')">הרשמה</button>
   </div>
-
   <div id="email-form">
     <div class="form-group" id="fullname-group" style="display:none">
       <label>שם מלא</label>
@@ -183,16 +108,12 @@
     </div>
     <button class="btn-primary" onclick="handleEmailAuth()">המשך</button>
   </div>
-
   <div class="divider" id="google-divider">או</div>
-
   <button class="btn-google" id="google-btn" onclick="handleGoogle()">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
     המשך עם Google
   </button>
-
   <div class="message" id="message"></div>
-
   <div class="switch-text" id="switch-text">
     אין לך חשבון? <a onclick="switchTab('signup')">הרשמה</a>
   </div>
@@ -201,15 +122,36 @@
 <script>
   const SUPABASE_URL = 'https://qvuewochgjttvpgtwsir.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_Hhs1AdWwpxqf8EBTcOG3uA_PIkRFdZn';
-
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
   let currentTab = 'login';
 
-  // ✅ מאזין לשינוי session - ברגע שמשתמש מחובר מפנה לשאלון
+  // Funnel Tracking
+  async function trackPage(userId) {
+    try {
+      let sessionId = localStorage.getItem('nina_session');
+      if (!sessionId) { sessionId = crypto.randomUUID(); localStorage.setItem('nina_session', sessionId); }
+      await sb.from('funnel_events').insert({ session_id: sessionId, page: 'auth', user_id: userId || null });
+    } catch (e) {}
+  }
+  trackPage();
+
+  // שמירת משתמש ב-DB אחרי הרשמה/כניסה
+  async function saveUserToDB(userId, email) {
+    try {
+      await fetch('/save-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, email })
+      });
+    } catch (e) {}
+  }
+
+  // מאזין לשינוי session
   sb.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
+      trackPage(session.user.id);
+      saveUserToDB(session.user.id, session.user.email);
       window.location.href = '/quiz.html';
     }
   });
@@ -223,12 +165,10 @@
     switchText.innerHTML = tab === 'login'
       ? 'אין לך חשבון? <a onclick="switchTab(\'signup\')">הרשמה</a>'
       : 'כבר יש לך חשבון? <a onclick="switchTab(\'login\')">כניסה</a>';
-
     const isSignup = tab === 'signup';
     document.getElementById('fullname-group').style.display = isSignup ? 'block' : 'none';
     document.getElementById('google-divider').style.display = isSignup ? 'none' : 'flex';
     document.getElementById('google-btn').style.display = isSignup ? 'none' : 'flex';
-
     showMessage('', '');
   }
 
@@ -242,16 +182,11 @@
   async function handleEmailAuth() {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-
     if (!email || !password) return showMessage('נא למלא אימייל וסיסמה', 'error');
-
     if (currentTab === 'signup') {
       const fullName = document.getElementById('fullname').value.trim();
       if (!fullName) return showMessage('נא למלא שם מלא', 'error');
-      const { error } = await sb.auth.signUp({
-        email, password,
-        options: { data: { full_name: fullName } }
-      });
+      const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
       if (error) return showMessage(error.message, 'error');
       window.location.href = '/quiz.html';
     } else {
@@ -264,9 +199,7 @@
   async function handleGoogle() {
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/auth.html'
-      }
+      options: { redirectTo: window.location.origin + '/auth.html' }
     });
     if (error) showMessage(error.message, 'error');
   }
