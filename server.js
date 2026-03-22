@@ -289,6 +289,25 @@ app.post("/save-user", async (req, res) => {
   }
 });
 
+app.post("/api/sleep-session", async (req, res) => {
+  const { userId, date, duration_minutes, notes } = req.body;
+  if (!userId || !date || !duration_minutes) {
+    return res.status(400).json({ ok: false, message: "Missing required fields" });
+  }
+  try {
+    const { error } = await supabase.from("sleep_sessions").insert({
+      user_id: userId,
+      date,
+      duration_minutes,
+      notes: notes || ""
+    });
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: error.message });
+  }
+});
+
 app.post("/stripe-checkout", async (req, res) => {
   const { email, userId, whatsappNumber } = req.body;
   if (!email || !userId) return res.status(400).json({ message: "Missing email or userId" });

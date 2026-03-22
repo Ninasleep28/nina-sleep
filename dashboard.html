@@ -43,6 +43,17 @@
     </div>
 
     <div class="card">
+      <h2>דווח לילה חדש</h2>
+      <div style="display:grid;gap:10px;">
+        <input type="datetime-local" id="sleep-date" style="padding:10px;border:1px solid #dce2f4;border-radius:10px;" />
+        <input type="number" id="sleep-duration" placeholder="משך שינה בדקות" style="padding:10px;border:1px solid #dce2f4;border-radius:10px;" />
+        <textarea id="sleep-notes" rows="2" placeholder="הערות (אופציונלי)" style="padding:10px;border:1px solid #dce2f4;border-radius:10px;"></textarea>
+        <button class="btn" id="save-sleep" style="margin-top:0;">שמור דיווח לילה</button>
+      </div>
+      <p id="sleep-message" class="empty" style="margin-top:8px;"></p>
+    </div>
+
+    <div class="card">
       <h2>מה הלאה</h2>
       <p>עבור ל- <a href="/quiz.html">שאלון שינה</a> כדי לעדכן את הפרופיל והמדדים.</p>
       <p>לקבלת תמיכה, שלח/י הודעה בוואטסאפ למספר שירות הלקוחות.</p>
@@ -66,51 +77,72 @@
       document.getElementById('user-email').textContent = user.email || '---';
       const subStatusEl = document.getElementById('sub-status');
 
-      // משדרג: מפעילים טבלת מנויים ב-Supabase
-      try {
-        const { data: subscription, error: subError } = await sb
-          .from('subscriptions')
-          .select('status, plan, current_period_end')
-          .eq('user_id', user.id)
-          .single();
-        if (subError || !subscription) {
-          subStatusEl.innerHTML = '<span class="status-circle status-inactive"></span> לא נמצא מנוי<span style="color:#777;font-size:.95rem;"> (מעבר ל-trial / pending)</span>';
-        } else {
-          const active = ['active', 'trialing', 'paid'].includes(subscription.status);
-          subStatusEl.innerHTML = `<span class="status-circle ${active ? 'status-active' : 'status-inactive'}"></span> ${subscription.status}` +
-            (subscription.current_period_end ? ` (עד ${new Date(subscription.current_period_end).toLocaleDateString('he-IL')})` : '');
-        }
-      } catch (e) {
-        subStatusEl.innerHTML = '<span class="status-circle status-inactive"></span> שגיאה בטעינת סטטוס';
-      }
-
-      // דשבורד לילות מתוך טבלה אופציונלית
       const nightsList = document.getElementById('nights-list');
       const nightsEmpty = document.getElementById('nights-empty');
-      try {
-        const { data: nights, error: nightsError } = await sb
-          .from('sleep_sessions')
-          .select('id,date,duration_minutes,notes')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false })
-          .limit(8);
 
-        if (nightsError) throw nightsError;
-        if (!nights || nights.length === 0) {
+      try {
+        const resp = await fetch(`/api/dashboard?user_id=${encodeURIComponent(user.id)}`);
+        const payload = await resp.json();
+        if (!resp.ok || !payload.ok) {
+          subStatusEl.innerHTML = '<span class="status-circle status-inactive"></span> שגיאה בטעינת דשבורד';
+          nightsEmpty.textContent = 'תקלה בטעינת נתונים, נסה לרענן.';
+          return;
+        }
+
+        const userData = payload.user || {};
+        const sessions = payload.sessions || [];
+
+        if (userData.is_premium) {
+          subStatusEl.innerHTML = '<span class="status-circle status-active"></span> מנוי פעיל';
+        } else {
+          subStatusEl.innerHTML = '<span class="status-circle status-inactive"></span> לא יישום מנוי פעיל';
+        }
+
+        if (!sessions.length) {
           nightsEmpty.textContent = 'אין רשומות לילות זמינות. מלא/י את השאלון וצרף/י דיווח לילה ראשון.';
           return;
         }
 
         nightsEmpty.style.display = 'none';
-        nights.forEach(item => {
+        sessions.slice(0, 10).forEach(item => {
           const li = document.createElement('li');
           const date = new Date(item.date).toLocaleDateString('he-IL');
-          li.innerHTML = `<span>${date}</span><strong>${item.duration_minutes || '-'} דק'</strong>`;
+          li.innerHTML = `<span>${date}</span><strong>${item.duration_minutes || '-'} דק' ${item.notes ? `(${item.notes})` : ''}</strong>`;
           nightsList.appendChild(li);
         });
       } catch (e) {
+        subStatusEl.innerHTML = '<span class="status-circle status-inactive"></span> שגיאה בטעינת דשבורד';
         nightsEmpty.textContent = 'תקלה בקריאת לילות (בדקו את הטבלאות).';
       }
+
+      document.getElementById('save-sleep').addEventListener('click', async () => {
+        const sleepDate = document.getElementById('sleep-date').value;
+        const sleepDuration = parseInt(document.getElementById('sleep-duration').value, 10);
+        const sleepNotes = document.getElementById('sleep-notes').value.trim();
+        const msgEl = document.getElementById('sleep-message');
+
+        if (!sleepDate || !sleepDuration) {
+          msgEl.textContent = 'נא להזין תאריך ומשך שינה';
+          return;
+        }
+
+        try {
+          const r = await fetch('/api/sleep-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, date: sleepDate, duration_minutes: sleepDuration, notes: sleepNotes })
+          });
+          const result = await r.json();
+          if (!r.ok || !result.ok) throw new Error(result.message || 'Error saving');
+          msgEl.textContent = 'דיווח שמור בהצלחה';
+          document.getElementById('sleep-date').value = '';
+          document.getElementById('sleep-duration').value = '';
+          document.getElementById('sleep-notes').value = '';
+          window.location.reload();
+        } catch (err) {
+          msgEl.textContent = `שגיאה בשמירת דיווח: ${err.message}`;
+        }
+      });
     }
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
