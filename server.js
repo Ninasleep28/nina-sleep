@@ -1,5 +1,7 @@
-import "dotenv/config";
-import express from "express";
+// ──────────────────────────────────────────────────────────────────────────────────
+// 🌙 NINA BABY SLEEP BOT
+// Deployed on Vercel | Supabase + Stripe + Twilio + Claude Haiku
+// ──────────────────────────────────────────────────────────────────────────────────
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
 import Stripe from "stripe";
