@@ -271,6 +271,7 @@ app.get("/", (req, res) => res.sendFile(join(__dirname, 'index.html')));
 app.get("/auth.html", (req, res) => res.sendFile(join(__dirname, 'auth.html')));
 app.get("/quiz.html", (req, res) => res.sendFile(join(__dirname, 'quiz.html')));
 app.get("/dashboard.html", (req, res) => res.sendFile(join(__dirname, 'dashboard.html')));
+app.get("/dashboard", (req, res) => res.sendFile(join(__dirname, 'dashboard.html')));
 app.get("/payment.html", (req, res) => res.sendFile(join(__dirname, 'payment.html')));
 app.get("/success.html", (req, res) => res.sendFile(join(__dirname, 'success.html')));
 
