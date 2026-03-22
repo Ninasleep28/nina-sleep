@@ -3,6 +3,8 @@ import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
 import Stripe from "stripe";
+import cron from "cron";
+import nodemailer from "nodemailer";
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@supabase/supabase-js";
 import { fileURLToPath } from "url";
@@ -117,6 +119,79 @@ async function saveUser(userId, email, isPremium = false, whatsappNumber = null)
   if (error) { console.error("Error saving user:", error); throw error; }
 }
 
+const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886";
+
+const emailTransporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "smtp.sendgrid.net",
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER || "apikey",
+    pass: process.env.SMTP_PASS || process.env.SENDGRID_API_KEY || "",
+  },
+});
+
+async function sendEmail(to, subject, text) {
+  if (!to) throw new Error("Missing recipient email");
+  await emailTransporter.sendMail({
+    from: process.env.EMAIL_FROM || "nina@ninababysleep.com",
+    to,
+    subject,
+    text,
+  });
+}
+
+async function sendWhatsApp(to, body) {
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+    console.warn("Twilio credentials missing; skipping WhatsApp send");
+    return;
+  }
+
+  await twilioClient.messages.create({ from: TWILIO_WHATSAPP_NUMBER, to, body });
+}
+
+async function sendTimerNotifications() {
+  try {
+    const now = new Date();
+    const in15 = new Date(now.getTime() + 15 * 60000);
+    // טבלה לשעות שינה מתוזמנות (bedtime, morning_time)
+    const { data: schedules, error } = await supabase
+      .from("sleep_schedules")
+      .select("id,user_id,whatsapp_number,bedtime,morning_time")
+      .or(`bedtime.eq.${now.toISOString()},morning_time.eq.${now.toISOString()}`); // לצורך דוגמה
+
+    if (error) { console.error("Error fetching schedules:", error); return; }
+
+    for (const row of schedules || []) {
+      if (!row.whatsapp_number) continue;
+      const nextBed = new Date(row.bedtime);
+      const nextMorning = new Date(row.morning_time);
+      const diffToBed = (nextBed.getTime() - now.getTime()) / 60000;
+      const diffToMorning = (nextMorning.getTime() - now.getTime()) / 60000;
+
+      if (diffToBed >= 0 && diffToBed <= 16) {
+        await sendWhatsApp(row.whatsapp_number, "תזכורת: עוד 15 דקות מתחיל טקס ההרדמה. האם אתם מוכנים? 🌙");
+      }
+      if (diffToMorning >= 0 && diffToMorning <= 16) {
+        await sendWhatsApp(row.whatsapp_number, "בוקר טוב! איך עבר הלילה? אם פתרתם משהו שווה, ספרו לי כדי שאתעדכן.");
+      }
+    }
+  } catch (err) {
+    console.error("Error in sendTimerNotifications:", err);
+  }
+}
+
+function startScheduledJobs() {
+  try {
+    new cron.CronJob("*/5 * * * *", sendTimerNotifications, null, true, "Israel");
+    console.log("Scheduled jobs started: sendTimerNotifications every 5 minutes.");
+  } catch (err) {
+    console.error("Error starting scheduled jobs:", err);
+  }
+}
+
+startScheduledJobs();
+
 async function askClaude(phone, userMessage) {
   const history = await loadHistory(phone);
   history.push({ role: "user", content: userMessage });
@@ -127,10 +202,6 @@ async function askClaude(phone, userMessage) {
   history.push({ role: "assistant", content: assistantText });
   await saveHistory(phone, history);
   return assistantText;
-}
-
-async function sendWhatsApp(to, body) {
-  await twilioClient.messages.create({ from: process.env.TWILIO_WHATSAPP_NUMBER, to, body });
 }
 
 const app = express();
@@ -156,7 +227,41 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
       } catch (err) { console.error("Error processing payment webhook:", err); }
     })());
   }
-  res.json({ received: true });
+    else if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object;
+    const customerEmail = invoice.customer_email;
+    console.log(`Invoice payment failed for ${customerEmail}`);
+    try {
+      if (customerEmail) {
+        const { data: user, error: userError } = await supabase.from("users").select("id").eq("email", customerEmail).single();
+        if (!userError && user?.id) {
+          await supabase.from("subscriptions").upsert({ user_id: user.id, status: "past_due" }, { onConflict: "user_id" });
+        }
+        await sendEmail(
+          customerEmail,
+          "????? ????? ????? - ????",
+          `????,\n\n???? ??????? ????? ?? ?????? ????? ??? ???????.\n??? ????/? ?? ???? ?????? ????/??? ???.\n\n??? ????: hello@ninababysleep.com\n\n?????, ???? ????`
+        );
+      }
+    } catch (err) {
+      console.error("Failed handling invoice.payment_failed:", err);
+    }
+  }
+  else if (event.type === "invoice.payment_succeeded") {
+    const invoice = event.data.object;
+    const customerEmail = invoice.customer_email;
+    console.log(`Invoice payment succeeded for ${customerEmail}`);
+    try {
+      if (customerEmail) {
+        const { data: user, error: userError } = await supabase.from("users").select("id").eq("email", customerEmail).single();
+        if (!userError && user?.id) {
+          await supabase.from("subscriptions").upsert({ user_id: user.id, status: "active" }, { onConflict: "user_id" });
+        }
+      }
+    } catch (err) {
+      console.error("Failed handling invoice.payment_succeeded:", err);
+    }
+  }res.json({ received: true });
 });
 
 app.use(express.urlencoded({ extended: false }));
@@ -229,6 +334,23 @@ app.post("/reset/:phone", async (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/dashboard", async (req, res) => {
+  const userId = req.query.user_id;
+  if (!userId) return res.status(400).json({ ok: false, message: "Missing user_id" });
+
+  try {
+    const { data: userData, error: userError } = await supabase.from("users").select("id,email,is_premium").eq("id", userId).single();
+    if (userError) return res.status(500).json({ ok: false, error: userError.message });
+
+    const { data: sessions, error: sessionsError } = await supabase.from("sleep_sessions").select("date,duration_minutes,notes").eq("user_id", userId).order("date", { ascending: false }).limit(12);
+    if (sessionsError) return res.status(500).json({ ok: false, error: sessionsError.message });
+
+    return res.json({ ok: true, user: userData, sessions });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.get("/status", async (_req, res) => {
   const { data, error } = await supabase.from("conversations").select("phone_number, messages, updated_at").order("updated_at", { ascending: false });
   if (error) return res.status(500).json({ ok: false, error: error.message });
@@ -241,3 +363,4 @@ if (process.env.VERCEL !== "1") {
 }
 
 export default app;
+
