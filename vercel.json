@@ -6,7 +6,10 @@
     { "src": "auth.html", "use": "@vercel/static" },
     { "src": "quiz.html", "use": "@vercel/static" },
     { "src": "payment.html", "use": "@vercel/static" },
-    { "src": "success.html", "use": "@vercel/static" }
+    { "src": "success.html", "use": "@vercel/static" },
+    { "src": "terms.html", "use": "@vercel/static" },
+    { "src": "privacy.html", "use": "@vercel/static" },
+    { "src": "accessibility.html", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/webhook", "dest": "/server.js" },
@@ -20,6 +23,9 @@
     { "src": "/quiz.html", "dest": "/quiz.html" },
     { "src": "/payment.html", "dest": "/payment.html" },
     { "src": "/success.html", "dest": "/success.html" },
+    { "src": "/terms.html", "dest": "/terms.html" },
+    { "src": "/privacy.html", "dest": "/privacy.html" },
+    { "src": "/accessibility.html", "dest": "/accessibility.html" },
     { "src": "/", "dest": "/index.html" }
   ]
 }
