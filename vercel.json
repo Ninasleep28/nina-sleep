@@ -20,6 +20,7 @@
     { "src": "/status", "dest": "/server.js" },
     { "src": "/reset/(.*)", "dest": "/server.js" },
     { "src": "/auth.html", "dest": "/auth.html" },
+    { "src": "/quiz", "dest": "/quiz.html" },
     { "src": "/quiz.html", "dest": "/quiz.html" },
     { "src": "/payment.html", "dest": "/payment.html" },
     { "src": "/success.html", "dest": "/success.html" },
