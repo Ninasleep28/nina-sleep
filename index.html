@@ -122,18 +122,20 @@
 
     /* בנר עוגיות */
     .cookie-banner {
-      position: fixed; bottom: 0; left: 0; z-index: 9998;
-      background: #2d2540; color: white;
-      padding: 16px 24px; display: flex;
-      align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 12px;
-      font-size: 14px;
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 9998; width: max-content; max-width: calc(100vw - 32px);
+      background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+      border: 1px solid rgba(0,0,0,0.08); border-radius: 12px;
+      padding: 10px 16px; display: flex;
+      align-items: center; gap: 12px;
+      font-size: 12px; color: #555;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
-    .cookie-banner a { color: #a78bfa; }
+    .cookie-banner a { color: #764ba2; }
     .cookie-accept {
-      background: var(--purple); color: white; border: none;
-      padding: 8px 20px; border-radius: 999px; cursor: pointer;
-      font-size: 14px; font-weight: 600; white-space: nowrap;
+      background: #764ba2; color: white; border: none;
+      padding: 5px 14px; border-radius: 999px; cursor: pointer;
+      font-size: 12px; font-weight: 600; white-space: nowrap; flex-shrink: 0;
     }
 
     @media (max-width: 680px) {
