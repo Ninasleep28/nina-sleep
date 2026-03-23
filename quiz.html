@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>שאלון שינה | ניינה</title>
+  <title>שאלון שינה | נינה</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -70,9 +70,12 @@
     .res-title { font-size:19px; font-weight:700; line-height:1.4; padding-top:3px; }
     .res-body { font-size:13.5px; color:var(--muted); line-height:1.72; margin-bottom:16px; }
     .style-tag { display:inline-block; padding:3px 11px; background:rgba(244,197,90,.1); border:1px solid rgba(244,197,90,.22); border-radius:99px; font-size:11.5px; color:var(--gold); font-weight:600; margin-bottom:14px; }
-    .insight-box { background:rgba(126,184,196,.08); border:1px solid rgba(126,184,196,.2); border-radius:13px; padding:15px 16px; margin-bottom:18px; }
+    .insight-box { background:rgba(126,184,196,.08); border:1px solid rgba(126,184,196,.2); border-radius:13px; padding:15px 16px; margin-bottom:14px; }
     .ib-tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.13em; color:var(--accent); margin-bottom:7px; }
     .ib-text { font-size:13.5px; line-height:1.68; }
+    .blog-link-box { margin-bottom:18px; }
+    .blog-link-box a { display:flex; align-items:center; gap:8px; padding:12px 15px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:13px; color:var(--gold); font-size:13.5px; font-weight:600; text-decoration:none; transition:background .17s; }
+    .blog-link-box a:hover { background:rgba(255,255,255,.08); }
     .cta-box { background:linear-gradient(135deg,rgba(244,197,90,.1),rgba(224,160,40,.06)); border:1px solid rgba(244,197,90,.22); border-radius:15px; padding:20px 18px; text-align:center; }
     .cta-title { font-size:15px; font-weight:700; margin-bottom:6px; }
     .cta-sub { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:14px; }
@@ -82,28 +85,30 @@
 <body>
 <div id="stars"></div>
 <div class="wrap">
-  <div class="brand">שאלון שינה חינמי · <span>ניינה</span></div>
+  <div class="brand">שאלון שינה · <span>נינה</span></div>
 
+  <!-- מסך פתיחה -->
   <div class="screen active" id="screen-intro">
     <div class="card">
       <div class="moon">🌙</div>
-      <h1 class="intro-title">בוא נבין מה<br>קורה אצלכם בלילה</h1>
-      <p class="intro-sub">6 שאלות קצרות — ותקבל תובנה ראשונית בחינם, מותאמת לכם</p>
+      <h1 class="intro-title">בוא נכיר אתכם<br>טוב יותר</h1>
+      <p class="intro-sub">6 שאלות קצרות — ותקבל התאמת גישה מותאמת לכם</p>
       <div class="badges">
         <span class="badge">⏱ שתי דקות</span>
-        <span class="badge">🆓 ללא עלות</span>
         <span class="badge">📱 אישי</span>
       </div>
       <button class="btn" onclick="goTo('q1')">נתחיל ←</button>
     </div>
   </div>
 
+  <!-- שאלה 1: גיל -->
   <div class="screen" id="screen-q1">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:16%"></div></div><span class="prog-label">1 / 6</span></div>
     <div class="card">
+      <button class="back-btn" onclick="goTo('intro')">← חזרה</button>
       <div class="q-tag">גיל התינוק</div>
-      <h2 class="q-title">כמה חודשים בן/בת ילדך?</h2>
-      <p class="q-sub">גיל הילד קובע מה ריאלי לצפות ומה הגישה המתאימה</p>
+      <h2 class="q-title">מה הגיל של התינוק/תינוקת שלך?</h2>
+      <p class="q-sub">גיל התינוק קובע מה ריאלי לצפות ומה הגישה המתאימה</p>
       <div class="options">
         <div class="option" data-q="age" data-v="0to4" onclick="pick(this)"><div class="opt-icon">👶</div><div class="opt-text">0–4 חודשים</div><div class="opt-check"></div></div>
         <div class="option" data-q="age" data-v="4to8" onclick="pick(this)"><div class="opt-icon">🌱</div><div class="opt-text">4–8 חודשים</div><div class="opt-check"></div></div>
@@ -114,29 +119,31 @@
     </div>
   </div>
 
+  <!-- שאלה 2: אתגרים (בחירה מרובה) -->
   <div class="screen" id="screen-q2">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:33%"></div></div><span class="prog-label">2 / 6</span></div>
     <div class="card">
       <button class="back-btn" onclick="goTo('q1')">← חזרה</button>
-      <div class="q-tag">הבעיה העיקרית</div>
-      <h2 class="q-title">מה מפריע לכם הכי הרבה?</h2>
-      <p class="q-sub">בחר/י את מה שהכי מכביד עליכם עכשיו</p>
+      <div class="q-tag">האתגרים שלכם</div>
+      <h2 class="q-title">מה הכי קשה לכם עכשיו?</h2>
+      <div class="multi-hint">✌️ אפשר לבחור יותר מאחד</div>
       <div class="options">
-        <div class="option" data-q="problem" data-v="no_independent" onclick="pick(this)"><div class="opt-icon">😮</div><div class="opt-text">לא נרדם לבד — צריך עזרה בכל הרדמה</div><div class="opt-check"></div></div>
-        <div class="option" data-q="problem" data-v="wakings" onclick="pick(this)"><div class="opt-icon">🌪</div><div class="opt-text">מתעורר הרבה בלילה</div><div class="opt-check"></div></div>
-        <div class="option" data-q="problem" data-v="short_naps" onclick="pick(this)"><div class="opt-icon">⏱</div><div class="opt-text">שנות יום קצרות מדי</div><div class="opt-check"></div></div>
-        <div class="option" data-q="problem" data-v="bedtime" onclick="pick(this)"><div class="opt-icon">🕗</div><div class="opt-text">שעת שינה — ההרדמה לוקחת זמן רב</div><div class="opt-check"></div></div>
+        <div class="multi-option" data-v="no_independent" onclick="problemPick(this)"><div class="opt-icon">😮</div><div class="opt-text">לא נרדם לבד — צריך עזרה בכל הרדמה</div><div class="opt-box"></div></div>
+        <div class="multi-option" data-v="wakings" onclick="problemPick(this)"><div class="opt-icon">🌪</div><div class="opt-text">מתעורר הרבה בלילה</div><div class="opt-box"></div></div>
+        <div class="multi-option" data-v="short_naps" onclick="problemPick(this)"><div class="opt-icon">⏱</div><div class="opt-text">שנות יום קצרות מדי</div><div class="opt-box"></div></div>
+        <div class="multi-option" data-v="bedtime" onclick="problemPick(this)"><div class="opt-icon">🕗</div><div class="opt-text">ההרדמה בערב לוקחת זמן רב</div><div class="opt-box"></div></div>
       </div>
       <button class="btn" id="btn-q2" disabled onclick="goTo('q3')">המשך ←</button>
     </div>
   </div>
 
+  <!-- שאלה 3: סגנון -->
   <div class="screen" id="screen-q3">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:50%"></div></div><span class="prog-label">3 / 6</span></div>
     <div class="card">
       <button class="back-btn" onclick="goTo('q2')">← חזרה</button>
       <div class="q-tag">הסגנון שלך</div>
-      <h2 class="q-title">כשהילד בוכה, מה נכון לך?</h2>
+      <h2 class="q-title">כשהתינוק בוכה, מה נכון לך?</h2>
       <p class="q-sub">אין תשובה נכונה — זה עוזר להתאים גישה שתוכלו באמת לקיים</p>
       <div class="options">
         <div class="option" data-q="style" data-v="no_cry" onclick="pick(this)"><div class="opt-icon">❤️</div><div class="opt-text">לא מוכן/ה לשמוע בכי כלל — חייב להיות רך</div><div class="opt-check"></div></div>
@@ -147,27 +154,30 @@
     </div>
   </div>
 
+  <!-- שאלה 4: סביבת שינה -->
   <div class="screen" id="screen-q4">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:66%"></div></div><span class="prog-label">4 / 6</span></div>
     <div class="card">
       <button class="back-btn" onclick="goTo('q3')">← חזרה</button>
       <div class="q-tag">סביבת השינה</div>
-      <h2 class="q-title">איפה הילד ישן?</h2>
+      <h2 class="q-title">איפה התינוק/תינוקת ישן/ה?</h2>
       <p class="q-sub">המיקום משפיע על הגישה ועל קצב ההתקדמות</p>
       <div class="options">
-        <div class="option" data-q="room" data-v="own" onclick="pick(this)"><div class="opt-icon">🚪</div><div class="opt-text">לבד בחדרו</div><div class="opt-check"></div></div>
+        <div class="option" data-q="room" data-v="own" onclick="pick(this)"><div class="opt-icon">🚪</div><div class="opt-text">לבד בחדרו/ה</div><div class="opt-check"></div></div>
         <div class="option" data-q="room" data-v="shared" onclick="pick(this)"><div class="opt-icon">🏠</div><div class="opt-text">חדר משותף עם אחים</div><div class="opt-check"></div></div>
-        <div class="option" data-q="room" data-v="parents" onclick="pick(this)"><div class="opt-icon">🛏️</div><div class="opt-text">חדר ההורים או מיטת ההורים</div><div class="opt-check"></div></div>
+        <div class="option" data-q="room" data-v="parents_room" onclick="pick(this)"><div class="opt-icon">🛏️</div><div class="opt-text">חדר ההורים (במיטה/עריסה שלו/ה)</div><div class="opt-check"></div></div>
+        <div class="option" data-q="room" data-v="parents_bed" onclick="pick(this)"><div class="opt-icon">🤱</div><div class="opt-text">מיטת ההורים (שינה משותפת)</div><div class="opt-check"></div></div>
       </div>
       <button class="btn" id="btn-q4" disabled onclick="goTo('q5')">המשך ←</button>
     </div>
   </div>
 
+  <!-- שאלה 5: מה ניסיתם -->
   <div class="screen" id="screen-q5">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:83%"></div></div><span class="prog-label">5 / 6</span></div>
     <div class="card">
       <button class="back-btn" onclick="goTo('q4')">← חזרה</button>
-      <div class="q-tag">מה ניסיתם</div>
+      <div class="q-tag">ניסיון קודם</div>
       <h2 class="q-title">מה כבר ניסיתם?</h2>
       <div class="multi-hint">✌️ אפשר לבחור יותר מאחד</div>
       <div class="options">
@@ -181,22 +191,23 @@
     </div>
   </div>
 
+  <!-- שאלה 6: רפואי -->
   <div class="screen" id="screen-q6">
     <div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div><span class="prog-label">6 / 6</span></div>
     <div class="card">
       <button class="back-btn" onclick="goTo('q5')">← חזרה</button>
       <div class="q-tag">בריאות</div>
-      <h2 class="q-title">האם ילדך מאובחן עם בעיה רפואית, מנוטר על ידי רופא, או נוטל תרופות קבועות?</h2>
+      <h2 class="q-title">האם התינוק/תינוקת שלך מאובחן/ת עם בעיה רפואית, מנוטר/ת על ידי רופא, או נוטל/ת תרופות קבועות?</h2>
       <p class="q-sub">לדוגמה: ריפלוקס, אלרגיות, בעיות נשימה, עיכוב התפתחותי</p>
       <div class="options">
         <div class="option" data-q="medical" data-v="yes" onclick="pick(this)"><div class="opt-icon">⚕️</div><div class="opt-text">כן, יש בעיה רפואית ידועה</div><div class="opt-check"></div></div>
-        <div class="option" data-q="medical" data-v="no" onclick="pick(this)"><div class="opt-icon">✅</div><div class="opt-text">לא, הילד בריא</div><div class="opt-check"></div></div>
-        <div class="option" data-q="medical" data-v="unsure" onclick="pick(this)"><div class="opt-icon">🤔</div><div class="opt-text">לא בטוח/ה</div><div class="opt-check"></div></div>
+        <div class="option" data-q="medical" data-v="no" onclick="pick(this)"><div class="opt-icon">✅</div><div class="opt-text">לא, התינוק/תינוקת בריא/ה</div><div class="opt-check"></div></div>
       </div>
       <button class="btn" id="btn-q6" disabled onclick="handleQ6()">לתוצאות ←</button>
     </div>
   </div>
 
+  <!-- מסך בעיה רפואית -->
   <div class="screen" id="screen-gate-medical">
     <div class="card" style="text-align:center">
       <div class="gate-icon">⚕️</div>
@@ -205,12 +216,15 @@
       <div class="gate-box">
         📋 <strong>הצעד הבא:</strong><br>
         פנה/י לרופא/ת הילדים, ספר/י שאת/ה מתכנן/ת תהליך ייעוץ שינה התנהגותי — וקבל/י אישור להתחיל.<br><br>
-        ברגע שיש אישור — ניינה תשמח ללוות אותך 🌙
+        ברגע שיש אישור — נינה תשמח ללוות אותך 🌙
       </div>
-      <button class="btn" onclick="goTo('q6')" style="margin-top:22px">← חזרה</button>
+      <a href="/" style="text-decoration:none;display:block;margin-top:22px">
+        <button class="btn">← חזרה לדף הבית</button>
+      </a>
     </div>
   </div>
 
+  <!-- תוצאות -->
   <div class="screen" id="screen-results">
     <div class="card">
       <div class="res-head">
@@ -223,14 +237,15 @@
         <div class="ib-tag">מה כדאי לעשות</div>
         <div class="ib-text" id="r-insight"></div>
       </div>
+      <div class="blog-link-box" id="r-blog-link"></div>
       <div class="cta-box">
         <div class="cta-title">🌟 רוצה תוכנית מותאמת אישית?</div>
-        <div class="cta-sub">ניינה תלווה אותך יום יום בוואטספ — תנתח יומני שינה ותסביר בדיוק מה לעשות בכל שלב</div>
+        <div class="cta-sub">נינה תלווה אותך יום יום בוואטספ — תנתח יומני שינה ותסביר בדיוק מה לעשות בכל שלב</div>
         <a href="/payment.html" style="text-decoration:none">
           <button class="btn" style="margin-top:0">🌙 התחילו עכשיו</button>
         </a>
       </div>
-      <button class="btn ghost" onclick="goTo('intro')">← חזרה לתחילה</button>
+      <button class="btn ghost" onclick="goTo('intro')">← חזרה לשאלון</button>
     </div>
   </div>
 
@@ -242,7 +257,6 @@
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Funnel Tracking
   async function trackPage() {
     try {
       let sessionId = localStorage.getItem('nina_session');
@@ -255,6 +269,7 @@
 
 const A = {};
 const tried = new Set();
+const problems = new Set();
 
 (function(){
   const c = document.getElementById('stars');
@@ -277,8 +292,15 @@ function pick(el){
   el.closest('.options').querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
   A[q]=el.dataset.v;
-  const map={age:'q1',problem:'q2',style:'q3',room:'q4',medical:'q6'};
+  const map={age:'q1',style:'q3',room:'q4',medical:'q6'};
   if(map[q]) document.getElementById('btn-'+map[q]).disabled=false;
+}
+
+function problemPick(el){
+  el.classList.toggle('selected');
+  if(el.classList.contains('selected')) problems.add(el.dataset.v);
+  else problems.delete(el.dataset.v);
+  document.getElementById('btn-q2').disabled = problems.size === 0;
 }
 
 function multiPick(el){
@@ -302,30 +324,51 @@ function handleQ6(){
 }
 
 function showResults(){
-  const {problem, style, room} = A;
-  let emoji, title, body, insight;
+  const style = A.style;
+  const room = A.room;
+  const problem = [...problems][0] || 'bedtime';
+
+  let emoji, title, body, insight, blogUrl;
 
   if(problem==='no_independent'){
-    emoji='🌙'; title='ילדך טרם רכש הרגלי הירדמות עצמאיים';
-    body='זו הבעיה השכיחה ביותר — ולמרות שמרגיש מתסכל, היא גם הפתירה ביותר. מה שקורה הוא שהילד למד להירדם עם עזרה, ולכן בכל יקיצה הוא מצפה שהעזרה הזו תחזור.';
-    insight='התהליך המתאים מתחיל מהשכבה במיטה עם ליווי קרוב, ומתקדם בהדרגה לעצמאות — בקצב שמתאים גם לילד וגם להורים.';
+    emoji='🌙'; title='התינוק/תינוקת שלך טרם פיתח/ה הרגלי הירדמות עצמאיים';
+    body='זו הבעיה השכיחה ביותר — ולמרות שמרגיש מתסכל, היא גם הפתירה ביותר. מה שקורה הוא שהתינוק למד להירדם עם עזרה, ולכן בכל יקיצה הוא מצפה שהעזרה הזו תחזור.';
+    insight='התהליך המתאים מתחיל מהשכבה במיטה עם ליווי קרוב, ומתקדם בהדרגה לעצמאות — בקצב שמתאים גם לתינוק וגם להורים.';
   } else if(problem==='wakings'){
     emoji='🌊'; title='יקיצות מרובות — זה מתיש, וניתן לשנות';
-    body='ילדים שמתעוררים הרבה בלילה לרוב לא יודעים לחזור לישון לבד. בכל מעבר בין מחזורי שינה — הם מחפשים מחדש את ה"עזרה" שהרדימה אותם בהתחלה.';
-    insight='הפתרון עובר דרך לימוד הירדמות עצמאית — ברגע שהילד יודע לעשות את זה, המעברים בין המחזורים נעשים חלקים ושקטים.';
+    body='תינוקות שמתעוררים הרבה בלילה לרוב לא יודעים לחזור לישון לבד. בכל מעבר בין מחזורי שינה — הם מחפשים מחדש את ה"עזרה" שהרדימה אותם בהתחלה.';
+    insight='הפתרון עובר דרך לימוד הירדמות עצמאית — ברגע שהתינוק יודע לעשות את זה, המעברים בין המחזורים נעשים חלקים ושקטים.';
   } else if(problem==='short_naps'){
     emoji='⏱'; title='שנות יום קצרות — לרוב יש סיבה ספציפית';
-    body='שנת יום קצרה מאוד (פחות מ-45 דקות) קשורה לרוב לאופן ההרדמה. כשהילד נרדם עם עזרה, הוא "מצפה" שמשהו יקרה בהמשך — וזה מונע כניסה לשינה עמוקה.';
+    body='שנת יום קצרה מאוד (פחות מ-45 דקות) קשורה לרוב לאופן ההרדמה. כשהתינוק נרדם עם עזרה, הוא "מצפה" שמשהו יקרה בהמשך — וזה מונע כניסה לשינה עמוקה.';
     insight='לרוב לא נדרש טיפול נפרד בשנות היום — ברגע שמשפרים את ההירדמות הכללית, שנות היום מסתדרות אחריהן.';
   } else {
     emoji='🕗'; title='שעת שינה ארוכה — מנפה אנרגיה בכל ערב';
-    body='הרדמה שלוקחת שעה ויותר היא סימן שמשהו לא מכוון — שעת שינה לא מתאימה, חוסר שגרה ברורה, או ציפייה של הילד לעזרה שלא תמיד מגיעה.';
+    body='הרדמה שלוקחת שעה ויותר היא סימן שמשהו לא מכוון — שעת שינה לא מתאימה, חוסר שגרה ברורה, או ציפייה של התינוק לעזרה שלא תמיד מגיעה.';
     insight='שגרת ערב קצרה וקבועה (15–20 דקות) יכולה לקצר את ההרדמה בצורה משמעותית כבר מהערב הראשון.';
   }
 
-  if(room==='parents') body+=' השינה בחדר ההורים יכולה להוסיף שכבה — אבל זה ממש לא מכשול.';
+  if(room==='parents_room' || room==='parents_bed') body+=' השינה בחדר ההורים יכולה להוסיף שכבה — אבל זה ממש לא מכשול.';
   if(tried.has('cio') && style==='no_cry') insight+=' שמנו לב שניסיתם CIO אבל זה לא מתאים לך — אפשר בהחלט להגיע לאותה מטרה בגישה הרבה יותר עדינה.';
   else if(tried.has('nothing')) insight+=' עדיין לא ניסיתם כלום — יש לנו מקום טוב להתחיל מאפס.';
+
+  // קישור לבלוג לפי גישה
+  if(problem==='short_naps' || problem==='bedtime'){
+    blogUrl='/blog-4.html';
+  } else if(style==='no_cry'){
+    blogUrl='/blog-3.html';
+  } else if(style==='some_cry' || style==='flexible'){
+    blogUrl='/blog-2.html';
+  } else {
+    blogUrl='/blog-1.html';
+  }
+
+  const blogLabels={
+    '/blog-1.html':'ייעוץ שינה לתינוקות — המדריך המקיף',
+    '/blog-2.html':'שיטת CIO ו-Ferber — המדריך המלא',
+    '/blog-3.html':'Chair Method ו-Fading — ללמד שינה עצמאית בעדינות',
+    '/blog-4.html':'שגרת שינה וסביבה אופטימלית — הבסיס לכל גישה'
+  };
 
   const styleLabels={no_cry:'גישה עדינה ללא בכי', some_cry:'גישה מאוזנת', flexible:'גישה גמישה'};
   document.getElementById('r-style-tag').innerHTML = style ? `<div class="style-tag">✦ הסגנון שלך: ${styleLabels[style]}</div>` : '';
@@ -333,6 +376,7 @@ function showResults(){
   document.getElementById('r-title').textContent = title;
   document.getElementById('r-body').textContent  = body;
   document.getElementById('r-insight').textContent = insight;
+  document.getElementById('r-blog-link').innerHTML = `<a href="${blogUrl}" target="_blank">📖 ${blogLabels[blogUrl]} ←</a>`;
   goTo('results');
 }
 </script>
