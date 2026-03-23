@@ -110,12 +110,23 @@
       <h2 class="q-title">מה הגיל של התינוק/תינוקת שלך?</h2>
       <p class="q-sub">גיל התינוק קובע מה ריאלי לצפות ומה הגישה המתאימה</p>
       <div class="options">
-        <div class="option" data-q="age" data-v="0to4" onclick="pick(this)"><div class="opt-icon">👶</div><div class="opt-text">0–4 חודשים</div><div class="opt-check"></div></div>
+        <div class="option" data-q="age" data-v="0to3" onclick="pick(this)"><div class="opt-icon">👶</div><div class="opt-text">0–3 חודשים</div><div class="opt-check"></div></div>
         <div class="option" data-q="age" data-v="4to8" onclick="pick(this)"><div class="opt-icon">🌱</div><div class="opt-text">4–8 חודשים</div><div class="opt-check"></div></div>
         <div class="option" data-q="age" data-v="8to12" onclick="pick(this)"><div class="opt-icon">🐣</div><div class="opt-text">8–12 חודשים</div><div class="opt-check"></div></div>
         <div class="option" data-q="age" data-v="1yplus" onclick="pick(this)"><div class="opt-icon">🧒</div><div class="opt-text">שנה ומעלה</div><div class="opt-check"></div></div>
       </div>
-      <button class="btn" id="btn-q1" disabled onclick="goTo('q2')">המשך ←</button>
+      <button class="btn" id="btn-q1" disabled onclick="goNextFromQ1()">המשך ←</button>
+    </div>
+  </div>
+
+  <!-- מסך תינוק צעיר -->
+  <div class="screen" id="screen-young-baby">
+    <div class="card">
+      <button class="back-btn" onclick="goTo('q1')">← חזרה</button>
+      <div class="q-tag">💡 חשוב לדעת</div>
+      <h2 class="q-title">תינוקות עד גיל 3 חודשים</h2>
+      <p class="q-sub" style="font-size:15px;line-height:1.8;margin-top:16px;">תינוקות עד גיל 3 חודשים עדיין לא מוכנים לייעוץ שינה פורמלי.<br><br>נינה תעזור לך עם שגרה, סביבת שינה וטיפים מותאמים לגיל הזה.</p>
+      <button class="btn" style="margin-top:24px;" onclick="goTo('q2')">המשך לשאלון ←</button>
     </div>
   </div>
 
@@ -285,6 +296,11 @@ function goTo(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goNextFromQ1(){
+  if(A.age === '0to3') goTo('young-baby');
+  else goTo('q2');
 }
 
 function pick(el){
