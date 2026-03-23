@@ -512,5 +512,70 @@
     }
   }, 2000);
 </script>
+
+<!-- כלי נגישות -->
+<style>
+#a11y-widget{position:fixed;bottom:80px;left:20px;z-index:10000;font-family:'Heebo',Arial,sans-serif}
+#a11y-toggle{width:48px;height:48px;border-radius:50%;background:#7c5cbf;color:white;border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,92,191,.4);transition:transform .2s}
+#a11y-toggle:hover{transform:scale(1.1)}
+#a11y-panel{display:none;position:absolute;bottom:58px;left:0;background:white;border:1px solid #e8e0f7;border-radius:16px;padding:16px;width:190px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+#a11y-panel.open{display:block}
+#a11y-panel-title{font-size:13px;font-weight:700;color:#7c5cbf;margin-bottom:10px;text-align:center}
+.a11y-btn{display:block;width:100%;padding:7px 12px;margin-bottom:5px;background:#f5f2fd;border:1px solid #e8e0f7;border-radius:8px;color:#2d2540;font-family:'Heebo',Arial,sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:right;transition:background .15s}
+.a11y-btn:hover{background:#e8e0f7}
+.a11y-btn.a11y-active{background:#7c5cbf;color:white;border-color:#7c5cbf}
+body.a11y-contrast{filter:contrast(160%)}
+body.a11y-gray{filter:grayscale(100%)}
+body.a11y-links a{text-decoration:underline!important;outline:2px solid #7c5cbf!important;outline-offset:2px}
+body.a11y-font,body.a11y-font *{font-family:Arial,sans-serif!important}
+</style>
+<div id="a11y-widget">
+  <button id="a11y-toggle" onclick="toggleA11y()" aria-label="אפשרויות נגישות" aria-expanded="false">♿</button>
+  <div id="a11y-panel" role="dialog" aria-label="תפריט נגישות">
+    <div id="a11y-panel-title">כלי נגישות</div>
+    <button class="a11y-btn" onclick="a11yFont(1)">הגדל טקסט  א+</button>
+    <button class="a11y-btn" onclick="a11yFont(-1)">הקטן טקסט  א-</button>
+    <button class="a11y-btn" id="ab-contrast" onclick="a11yClass('a11y-contrast','ab-contrast')">ניגודיות גבוהה</button>
+    <button class="a11y-btn" id="ab-gray"     onclick="a11yClass('a11y-gray','ab-gray')">גווני אפור</button>
+    <button class="a11y-btn" id="ab-links"    onclick="a11yClass('a11y-links','ab-links')">הדגשת קישורים</button>
+    <button class="a11y-btn" id="ab-font"     onclick="a11yClass('a11y-font','ab-font')">פונט קריא</button>
+    <button class="a11y-btn" onclick="a11yReset()">↺ איפוס</button>
+  </div>
+</div>
+<script>
+(function(){
+  var S=JSON.parse(localStorage.getItem('a11y')||'{}');
+  if(S.fs)document.documentElement.style.fontSize=S.fs+'px';
+  ['a11y-contrast','a11y-gray','a11y-links','a11y-font'].forEach(function(c){if(S[c])document.body.classList.add(c);});
+  function sync(){
+    [['a11y-contrast','ab-contrast'],['a11y-gray','ab-gray'],['a11y-links','ab-links'],['a11y-font','ab-font']].forEach(function(p){
+      var b=document.getElementById(p[1]);if(b)b.classList.toggle('a11y-active',document.body.classList.contains(p[0]));
+    });
+  }
+  window.toggleA11y=function(){
+    var p=document.getElementById('a11y-panel');
+    p.classList.toggle('open');
+    document.getElementById('a11y-toggle').setAttribute('aria-expanded',p.classList.contains('open'));
+    sync();
+  };
+  window.a11yFont=function(d){
+    var S=JSON.parse(localStorage.getItem('a11y')||'{}');
+    var c=S.fs||16;var n=Math.min(26,Math.max(12,c+d*2));
+    document.documentElement.style.fontSize=n+'px';S.fs=n;
+    localStorage.setItem('a11y',JSON.stringify(S));
+  };
+  window.a11yClass=function(cls,btnId){
+    document.body.classList.toggle(cls);
+    var S=JSON.parse(localStorage.getItem('a11y')||'{}');S[cls]=document.body.classList.contains(cls);
+    localStorage.setItem('a11y',JSON.stringify(S));sync();
+  };
+  window.a11yReset=function(){
+    ['a11y-contrast','a11y-gray','a11y-links','a11y-font'].forEach(function(c){document.body.classList.remove(c);});
+    document.documentElement.style.fontSize='';localStorage.removeItem('a11y');sync();
+  };
+  sync();
+})();
+</script>
+
 </body>
 </html>
