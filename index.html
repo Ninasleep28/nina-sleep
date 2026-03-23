@@ -101,6 +101,15 @@
     .btn-white { display: inline-block; background: var(--white); color: var(--purple); font-size: 1.12rem; font-weight: 800; padding: 1rem 3rem; border-radius: 999px; text-decoration: none; box-shadow: 0 6px 28px rgba(0,0,0,0.18); transition: transform 0.2s; }
     .btn-white:hover { transform: translateY(-2px); }
     .cta-sub { margin-top: 1.1rem; font-size: 0.85rem; color: rgba(255,255,255,0.68); }
+    .faq { background: var(--white); padding: 5rem 1.5rem; }
+    .faq-list { max-width: 720px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid #e8e0f7; }
+    .faq-q { width: 100%; background: none; border: none; display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 0; cursor: pointer; font-family: 'Heebo', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text); text-align: right; gap: 12px; }
+    .faq-q:hover { color: var(--purple); }
+    .faq-arrow { font-size: 1.1rem; color: var(--purple); transition: transform 0.25s; flex-shrink: 0; }
+    .faq-q.open .faq-arrow { transform: rotate(180deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; font-size: 0.97rem; color: var(--muted-text, #5a5270); line-height: 1.85; padding: 0; }
+    .faq-a.open { max-height: 200px; padding-bottom: 1.1rem; }
     footer { background: var(--text); color: rgba(255,255,255,0.55); text-align: center; padding: 2.2rem 1.5rem; font-size: 0.83rem; }
     .footer-logo { color: var(--white); font-weight: 800; font-size: 1.15rem; margin-bottom: 0.55rem; }
     .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
@@ -243,6 +252,56 @@
 </section>
 
 
+<section class="faq" id="faq">
+  <div class="container">
+    <h2 class="section-title">שאלות נפוצות</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>איך נינה שונה מיועצת שינה רגילה?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">נינה זמינה 24/7 — כולל שעה 3 לפנות בוקר כשאתם הכי צריכים. היא מכירה את התינוק שלכם, זוכרת כל שיחה, ומתאימה את התוכנית בזמן אמת. יועצת שינה רגילה עובדת בשעות קבועות ועולה אלפי שקלים.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>מה ההבדל בין נינה לצ'אט AI רגיל?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">צ'אט AI רגיל עונה רק כשאתם שואלים. נינה יוזמת — שולחת תזכורות לפני ההרדמה, בודקת כל בוקר איך היה הלילה, ועוקבת אחרי ההתקדמות שלכם. היא לא מחכה שתפנו אליה — היא מלווה אתכם כדי שתגיעו למטרה.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>מאיזה גיל נינה יכולה לעזור?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">נינה עובדת עם תינוקות מכל גיל. עד גיל 4 חודשים — עוזרת עם שגרה וסביבת שינה. מגיל 4 חודשים — תהליך שינה מלא ומותאם אישית.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>כמה זמן עד שרואים תוצאות?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">רוב המשפחות מדווחות על שיפור ניכר תוך <span dir="ltr">7–14</span> ימים. זה תלוי בגיל התינוק, הגישה שנבחרה ועקביות ההורים.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>איך התהליך עובד בפועל?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">ממלאים שאלון קצר באתר, מבצעים תשלום, ונינה שולחת הודעה בוואטספ. משם — שאלון מעמיק, תוכנית אישית, וליווי יומיומי. כל המידע על התהליך ושינת התינוק זמין בדשבורד האישי — אפשר לבקש מנינה בוואטספ בכל עת או לצפות באזור האישי באתר.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>האם נינה זמינה גם בשעות הלילה?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">כן — 24/7 ללא יוצא מן הכלל. גם בשעה 3 לפנות בוקר כשהתינוק קם ואתם לא יודעים מה לעשות, נינה שם.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="cta-final" id="cta">
   <h2>מוכנים לשינה טובה?</h2>
   <p>הצטרפו לאלפי משפחות שכבר ישנות טוב יותר עם נינה.</p>
@@ -260,6 +319,14 @@
     <a href="mailto:hello@ninababysleep.com">צור קשר</a>
   </div>
 </footer>
+<script>
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q.open').forEach(b => { b.classList.remove('open'); b.nextElementSibling.classList.remove('open'); });
+  if (!isOpen) { btn.classList.add('open'); answer.classList.add('open'); }
+}
+</script>
 
 <script>
   const SUPABASE_URL = 'https://qvuewochgjttvpgtwsir.supabase.co';
