@@ -9,7 +9,13 @@
     { "src": "success.html", "use": "@vercel/static" },
     { "src": "terms.html", "use": "@vercel/static" },
     { "src": "privacy.html", "use": "@vercel/static" },
-    { "src": "accessibility.html", "use": "@vercel/static" }
+    { "src": "accessibility.html", "use": "@vercel/static" },
+    { "src": "blog.html", "use": "@vercel/static" },
+    { "src": "blog-1.html", "use": "@vercel/static" },
+    { "src": "blog-2.html", "use": "@vercel/static" },
+    { "src": "blog-3.html", "use": "@vercel/static" },
+    { "src": "blog-4.html", "use": "@vercel/static" },
+    { "src": "blog-5.html", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/webhook", "dest": "/server.js" },
@@ -27,6 +33,12 @@
     { "src": "/terms.html", "dest": "/terms.html" },
     { "src": "/privacy.html", "dest": "/privacy.html" },
     { "src": "/accessibility.html", "dest": "/accessibility.html" },
+    { "src": "/blog.html", "dest": "/blog.html" },
+    { "src": "/blog-1.html", "dest": "/blog-1.html" },
+    { "src": "/blog-2.html", "dest": "/blog-2.html" },
+    { "src": "/blog-3.html", "dest": "/blog-3.html" },
+    { "src": "/blog-4.html", "dest": "/blog-4.html" },
+    { "src": "/blog-5.html", "dest": "/blog-5.html" },
     { "src": "/", "dest": "/index.html" }
   ]
 }

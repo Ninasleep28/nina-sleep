@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>שגרת שינה וסביבה אופטימלית — הבסיס לכל גישת שינה | הבלוג של נינה</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple: #7c5cbf; --purple-mid: #a07dd8; --purple-light: #e8e0f7;
+      --purple-pale: #f5f2fd; --cream: #fdfaf6;
+      --text: #2d2540; --text-soft: #6b607e; --white: #ffffff;
+      --radius: 16px;
+    }
+    body { font-family: 'Heebo', sans-serif; background: var(--cream); color: var(--text); line-height: 1.8; }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem; background: rgba(255,255,255,0.90);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--purple-light);
+    }
+    .logo { display: flex; align-items: center; gap: 0.55rem; font-size: 1.55rem; font-weight: 900; color: var(--purple); text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 2.5rem; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a { text-decoration: none; color: var(--text-soft); font-weight: 500; font-size: 0.92rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--purple); }
+    .nav-cta { background: var(--purple); color: var(--white) !important; padding: 0.5rem 1.4rem; border-radius: 999px; font-weight: 700 !important; font-size: 0.92rem; text-decoration: none; }
+    .article-hero { background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 4rem 1.5rem 3rem; text-align: center; }
+    .breadcrumb { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: var(--purple); text-decoration: none; }
+    .article-tag { display: inline-block; background: rgba(255,255,255,0.5); color: var(--purple); font-size: 0.78rem; font-weight: 700; padding: 0.3rem 1rem; border-radius: 999px; margin-bottom: 1rem; }
+    .article-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; line-height: 1.2; max-width: 700px; margin: 0 auto 1rem; }
+    .article-meta { font-size: 0.85rem; color: var(--text-soft); }
+    .article-body { max-width: 740px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    .article-body h2 { font-size: 1.5rem; font-weight: 800; margin: 2.5rem 0 0.8rem; }
+    .article-body h3 { font-size: 1.15rem; font-weight: 700; margin: 1.8rem 0 0.5rem; color: var(--purple); }
+    .article-body p { margin-bottom: 1.2rem; font-size: 1.02rem; color: #3d3350; }
+    .article-body ul, .article-body ol { margin: 0.5rem 0 1.2rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; font-size: 1rem; color: #3d3350; }
+    .highlight-box { background: var(--purple-pale); border-right: 4px solid var(--purple); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.2rem 1.5rem; margin: 1.8rem 0; }
+    .highlight-box p { margin: 0; font-weight: 500; }
+    .env-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .env-card { background: white; border-radius: var(--radius); padding: 1.3rem; border: 1px solid var(--purple-light); text-align: center; }
+    .env-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .env-card h4 { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem; }
+    .env-card p { font-size: 0.85rem; color: var(--text-soft); margin: 0; }
+    .routine-timeline { margin: 1.5rem 0; }
+    .timeline-item { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: flex-start; }
+    .timeline-time { background: var(--purple); color: white; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+    .timeline-content h4 { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .timeline-content p { font-size: 0.88rem; color: var(--text-soft); margin: 0; }
+    .cta-box { background: linear-gradient(135deg, var(--purple), var(--purple-mid)); border-radius: var(--radius); padding: 2.5rem; text-align: center; margin-top: 3rem; color: var(--white); }
+    .cta-box h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .cta-box p { color: rgba(255,255,255,0.85); margin-bottom: 1.5rem; font-size: 0.98rem; }
+    .btn-white { display: inline-block; background: var(--white); color: var(--purple); font-size: 1rem; font-weight: 800; padding: 0.85rem 2.5rem; border-radius: 999px; text-decoration: none; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+    footer { background: var(--text); color: rgba(255,255,255,0.55); text-align: center; padding: 2rem 1.5rem; font-size: 0.83rem; }
+    .footer-logo { color: var(--white); font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
+    .footer-links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 12px; }
+    @media (max-width: 680px) { nav { padding: 0.9rem 1.2rem; } .nav-links { display: none; } .env-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-right">
+    <a href="/" class="logo">🌙 נינה</a>
+    <div class="nav-links">
+      <a href="/#process">התהליך</a>
+      <a href="/blog.html">הבלוג של נינה</a>
+    </div>
+  </div>
+  <a href="/auth.html" class="nav-cta">✨ רוצים לישון טוב – מתחילים עכשיו</a>
+</nav>
+
+<div class="article-hero">
+  <div class="breadcrumb"><a href="/blog.html">הבלוג של נינה</a> ← שגרה וסביבה</div>
+  <span class="article-tag">שגרה וסביבה</span>
+  <h1>שגרת שינה וסביבה אופטימלית — הבסיס לכל גישת שינה</h1>
+  <div class="article-meta">קריאה של כ-6 דקות · נינה, יועצת שינה AI</div>
+</div>
+
+<div class="article-body">
+  <p>לפני שמדברים על CIO, פרבר, שיטת הכיסא או כל גישה אחרת — יש שני עמודי תווך שחייבים להיות במקום: שגרת שינה עקבית וסביבת שינה אופטימלית. ללא שני אלה, אף שיטה לא תצלח ביעילות המרבית שלה.</p>
+
+  <h2>למה סביבת שינה חשובה כל כך?</h2>
+  <p>מוח התינוק מחפש כל הזמן רמזים סביבתיים שאומרים לו "עכשיו זמן שינה". חדר חשוך, טמפרטורה נעימה ורעש עקבי מסייעים לגוף לשחרר מלטונין ולהיכנס לשינה עמוקה. כשהסביבה לא תומכת בשינה — הגוף "נלחם" בה.</p>
+
+  <h2>ארבעת מרכיבי הסביבה האידיאלית</h2>
+  <div class="env-grid">
+    <div class="env-card">
+      <div class="env-icon">🌑</div>
+      <h4>חושך מוחלט</h4>
+      <p>וילונות בלקאאוט. גם אור קטן מעכב ייצור מלטונין.</p>
+    </div>
+    <div class="env-card">
+      <div class="env-icon">🌡️</div>
+      <h4>טמפרטורה: 18–20°</h4>
+      <p>חדר קריר יותר מדי הביתה רגיל מסייע לשינה עמוקה.</p>
+    </div>
+    <div class="env-card">
+      <div class="env-icon">🔊</div>
+      <h4>רעש לבן</h4>
+      <p>מסכה רעשים חיצוניים ומדמה את הסביבה הרחמית.</p>
+    </div>
+    <div class="env-card">
+      <div class="env-icon">🛏️</div>
+      <h4>מיטה בטוחה</h4>
+      <p>מזרן יציב, ללא כריות/שמיכות עד גיל שנה. שטוח ועמיד.</p>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <p>💡 טיפ: השקעה בוילונות בלקאאוט היא אחד הדברים המשפיעים ביותר על שינת תינוקות — ועולה פחות מכל יועץ שינה.</p>
+  </div>
+
+  <h2>שגרת ערב — למה היא קריטית?</h2>
+  <p>שגרת ערב עקבית שולחת אות ברור למוח התינוק: "עוד כמה דקות — שינה". כשהתינוק יודע מה צפוי, רמת החרדה יורדת ותהליך ההרדמה מתקצר משמעותית.</p>
+  <p>מחקרים מראים שתינוקות עם שגרת ערב עקבית נרדמים מהר יותר, מתעוררים פחות בלילה וישנים יותר שעות בסך הכל.</p>
+
+  <h3>שגרת ערב לדוגמה — תינוק בן 6 חודשים:</h3>
+  <div class="routine-timeline">
+    <div class="timeline-item">
+      <span class="timeline-time">18:30</span>
+      <div class="timeline-content"><h4>אמבטיה חמה</h4><p>10–15 דקות. ירידת הטמפרטורה לאחר האמבטיה מסמנת לגוף שינה.</p></div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-time">18:45</span>
+      <div class="timeline-content"><h4>עיסוי ולבוש פיג'מה</h4><p>מגע עדין מוריד קורטיזול ומרגיע את מערכת העצבים.</p></div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-time">19:00</span>
+      <div class="timeline-content"><h4>הזנה / הנקה</h4><p>בחדר החשוך ורגוע. אם ייתכן — לא עד שנרדם לחלוטין.</p></div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-time">19:15</span>
+      <div class="timeline-content"><h4>ספר / שיר שינה</h4><p>1–2 ספרים קצרים או שיר קבוע. יוצרים "עוגן" שינה.</p></div>
+    </div>
+    <div class="timeline-item">
+      <span class="timeline-time">19:30</span>
+      <div class="timeline-content"><h4>מניחים במיטה</h4><p>ערני אך ישנוני. "לילה טוב" קצר — ויוצאים.</p></div>
+    </div>
+  </div>
+
+  <h2>לוחות זמנים לפי גיל</h2>
+  <p>שגרה טובה מתחשבת גם בחלונות השינה — פרקי הזמן שבהם התינוק מוכן לשינה ולא מת עייפות. תינוק שנכנס לחלון השינה שלו יירדם בקלות; תינוק שחורג ממנו — יהיה עצבני ויתקשה להירדם.</p>
+  <ul>
+    <li><strong>0–3 חודשים:</strong> חלונות שינה של 45–75 דקות בלבד. שינה כ-16–18 שעות ביממה.</li>
+    <li><strong>4–6 חודשים:</strong> חלונות שינה של 1.5–2 שעות. 3 שנות יום. שינה לילית 10–12 שעות.</li>
+    <li><strong>7–9 חודשים:</strong> 2 שנות יום. חלונות שינה של 2.5–3 שעות. שינה לילית 11–12 שעות.</li>
+    <li><strong>10–12 חודשים:</strong> מעבר הדרגתי ל-1 שנת יום. חלון שינה של 3–4 שעות.</li>
+  </ul>
+
+  <h2>טעויות נפוצות בסביבת שינה</h2>
+  <ul>
+    <li>השארת מנורת לילה דולקת — גם אור כחול קלוש מדכא מלטונין</li>
+    <li>חדר חם מדי — בניגוד לאינטואיציה, קריר יותר = שינה טובה יותר</li>
+    <li>שינוי הסביבה בין שנת יום ללילה — אחידות עוזרת</li>
+    <li>מוזיקה מתחלפת — עדיף רעש לבן קבוע מאשר פלייליסט שמשתנה</li>
+    <li>כניסה לחדר בכל רעש קל — תינוקות מוציאים קולות קלים בשינה בלי להתעורר</li>
+  </ul>
+
+  <div class="cta-box">
+    <h3>רוצים לבנות שגרת ערב מותאמת אישית?</h3>
+    <p>נינה תשאל על לוח הזמנים שלכם ותבנה שגרת ערב שמתאימה לגיל התינוק ולמשפחה שלכם.</p>
+    <a href="/auth.html" class="btn-white">✨ רוצים לישון טוב – מתחילים עכשיו</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">🌙 נינה – יועצת שינה AI</div>
+  <p>© 2026 Connect AI Technologies LLC. כל הזכויות שמורות.</p>
+  <div class="footer-links">
+    <a href="/terms.html">תנאי שימוש</a>
+    <a href="/privacy.html">מדיניות פרטיות</a>
+    <a href="/accessibility.html">נגישות</a>
+    <a href="mailto:hello@ninababysleep.com">צור קשר</a>
+  </div>
+</footer>
+</body>
+</html>

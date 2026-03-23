@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ייעוץ שינה לתינוקות — למה זה חשוב וכיצד זה עובד | הבלוג של נינה</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple: #7c5cbf; --purple-mid: #a07dd8; --purple-light: #e8e0f7;
+      --purple-pale: #f5f2fd; --cream: #fdfaf6;
+      --text: #2d2540; --text-soft: #6b607e; --white: #ffffff;
+      --shadow-sm: 0 2px 12px rgba(124,92,191,0.08);
+      --shadow-md: 0 6px 28px rgba(124,92,191,0.13);
+      --radius: 16px;
+    }
+    body { font-family: 'Heebo', sans-serif; background: var(--cream); color: var(--text); line-height: 1.8; }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem; background: rgba(255,255,255,0.90);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--purple-light);
+    }
+    .logo { display: flex; align-items: center; gap: 0.55rem; font-size: 1.55rem; font-weight: 900; color: var(--purple); text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 2.5rem; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a { text-decoration: none; color: var(--text-soft); font-weight: 500; font-size: 0.92rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--purple); }
+    .nav-cta { background: var(--purple); color: var(--white) !important; padding: 0.5rem 1.4rem; border-radius: 999px; font-weight: 700 !important; font-size: 0.92rem; text-decoration: none; }
+    .article-hero {
+      background: linear-gradient(135deg, #ddd0f5, #c5b0eb);
+      padding: 4rem 1.5rem 3rem; text-align: center;
+    }
+    .breadcrumb { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: var(--purple); text-decoration: none; }
+    .article-tag { display: inline-block; background: rgba(255,255,255,0.5); color: var(--purple); font-size: 0.78rem; font-weight: 700; padding: 0.3rem 1rem; border-radius: 999px; margin-bottom: 1rem; }
+    .article-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; line-height: 1.2; max-width: 700px; margin: 0 auto 1rem; }
+    .article-meta { font-size: 0.85rem; color: var(--text-soft); }
+    .article-body { max-width: 740px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    .article-body h2 { font-size: 1.5rem; font-weight: 800; margin: 2.5rem 0 0.8rem; color: var(--text); }
+    .article-body h3 { font-size: 1.15rem; font-weight: 700; margin: 1.8rem 0 0.5rem; color: var(--purple); }
+    .article-body p { margin-bottom: 1.2rem; font-size: 1.02rem; color: #3d3350; }
+    .article-body ul, .article-body ol { margin: 0.5rem 0 1.2rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; font-size: 1rem; color: #3d3350; }
+    .highlight-box {
+      background: var(--purple-pale); border-right: 4px solid var(--purple);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 1.2rem 1.5rem; margin: 1.8rem 0;
+    }
+    .highlight-box p { margin: 0; font-weight: 500; }
+    .cta-box {
+      background: linear-gradient(135deg, var(--purple), var(--purple-mid));
+      border-radius: var(--radius); padding: 2.5rem; text-align: center;
+      margin-top: 3rem; color: var(--white);
+    }
+    .cta-box h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .cta-box p { color: rgba(255,255,255,0.85); margin-bottom: 1.5rem; font-size: 0.98rem; }
+    .btn-white { display: inline-block; background: var(--white); color: var(--purple); font-size: 1rem; font-weight: 800; padding: 0.85rem 2.5rem; border-radius: 999px; text-decoration: none; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+    footer { background: var(--text); color: rgba(255,255,255,0.55); text-align: center; padding: 2rem 1.5rem; font-size: 0.83rem; }
+    .footer-logo { color: var(--white); font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
+    .footer-links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 12px; }
+    @media (max-width: 680px) { nav { padding: 0.9rem 1.2rem; } .nav-links { display: none; } }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-right">
+    <a href="/" class="logo">🌙 נינה</a>
+    <div class="nav-links">
+      <a href="/#process">התהליך</a>
+      <a href="/blog.html">הבלוג של נינה</a>
+    </div>
+  </div>
+  <a href="/auth.html" class="nav-cta">✨ רוצים לישון טוב – מתחילים עכשיו</a>
+</nav>
+
+<div class="article-hero">
+  <div class="breadcrumb"><a href="/blog.html">הבלוג של נינה</a> ← מדריך מקיף</div>
+  <span class="article-tag">מדריך מקיף</span>
+  <h1>ייעוץ שינה לתינוקות — למה זה חשוב וכיצד זה עובד</h1>
+  <div class="article-meta">קריאה של כ-8 דקות · נינה, יועצת שינה AI</div>
+</div>
+
+<div class="article-body">
+  <p>שינה היא אחד הצרכים הבסיסיים ביותר של תינוקות — וגם של הוריהם. כשתינוק לא ישן טוב, כל המשפחה סובלת. עייפות כרונית, מתח, חוסר תפקוד — אלה הם המחיר שמשלמות משפחות רבות בשנה הראשונה לחיי תינוקן. ייעוץ שינה נועד לשנות את המצב הזה.</p>
+
+  <h2>מהו ייעוץ שינה לתינוקות?</h2>
+  <p>ייעוץ שינה הוא תהליך מקצועי שמטרתו לסייע לתינוקות לפתח הרגלי שינה בריאים. יועץ שינה בוחן את מכלול הגורמים המשפיעים על שינת התינוק — גיל, שלב התפתחותי, שגרת יום, סביבת שינה, גישת ההורים ועוד — ובונה תוכנית מותאמת אישית.</p>
+  <p>בניגוד לעצות גנריות מהאינטרנט, ייעוץ שינה אמיתי לוקח בחשבון את האישיות הייחודית של התינוק, את ערכי ההורים ואת האילוצים הספציפיים של המשפחה.</p>
+
+  <div class="highlight-box">
+    <p>💡 עובדה חשובה: תינוקות לא "לומדים" לישון מעצמם בהכרח. שינה עצמאית היא מיומנות שניתן ללמד — בדיוק כמו כל מיומנות התפתחותית אחרת.</p>
+  </div>
+
+  <h2>מתי כדאי לפנות לייעוץ שינה?</h2>
+  <p>אין גיל "נכון" להתחיל בייעוץ שינה, אבל ישנם סימנים שמעידים שהגיע הזמן:</p>
+  <ul>
+    <li>התינוק מתעורר יותר מ-3–4 פעמים בלילה אחרי גיל 4–5 חודשים</li>
+    <li>ההרדמה לוקחת יותר מ-45 דקות בכל ערב</li>
+    <li>ההורים מרגישים עייפות כרונית שמשפיעה על תפקודם</li>
+    <li>התינוק נרדם רק בתנאים ספציפיים — הנקה, נדנוד, נסיעה ברכב</li>
+    <li>יש "עמותת שינה" (sleep association) חזקה שגורמת להתעוררויות תכופות</li>
+  </ul>
+
+  <h2>מה הגורמים שמשפיעים על שינת תינוקות?</h2>
+
+  <h3>1. גיל ושלב התפתחותי</h3>
+  <p>שינת תינוקות משתנה דרמטית עם הגיל. יילוד שישן 16–18 שעות ביממה שונה לחלוטין מתינוק בן 9 חודשים שזקוק ל-12–14 שעות. כל גיל מגיע עם "חלונות שינה" ייחודיים ומחזורי שינה שונים.</p>
+
+  <h3>2. עמותות שינה (Sleep Associations)</h3>
+  <p>עמותת שינה היא כל גירוי חיצוני שהתינוק מקשר עם הירדמות. כשהתינוק נרדם בזמן הנקה ומתעורר בלילה, הוא מחפש את אותה "עמותה" כדי לחזור לישון. זהו אחד הגורמים הנפוצים ביותר להתעוררויות לילה.</p>
+
+  <h3>3. סביבת שינה</h3>
+  <p>חדר חשוך, קריר (18–20 מעלות) ושקט — או עם רעש לבן — תורם משמעותית לאיכות השינה. אור ורעשים בסביבה מפריעים לשינה עמוקה.</p>
+
+  <h3>4. שגרת יום ולוח זמנים</h3>
+  <p>תינוקות פועלים על פי שעון ביולוגי. שגרה עקבית ביחס לשעות שינה, ארוחות ופעילות — מסייעת לגוף "לדעת" מתי לשחרר מלטונין ולהירדם.</p>
+
+  <h3>5. גישת ההורים</h3>
+  <p>אין גישה אחת נכונה. חלק מההורים נוח יותר עם שיטות הכוללות בכי מסוים, בעוד אחרים מעדיפים גישה עדינה לחלוטין. ייעוץ שינה טוב מכבד את הערכים של המשפחה ומתאים את הגישה בהתאם.</p>
+
+  <h2>כיצד נראה תהליך ייעוץ השינה?</h2>
+  <p>תהליך ייעוץ שינה טיפוסי כולל מספר שלבים:</p>
+  <ol>
+    <li><strong>איסוף מידע:</strong> שאלון מקיף על התינוק, הרגלי השינה הנוכחיים, לוח זמנים, שגרות ואתגרים</li>
+    <li><strong>ניתוח וגיבוש תוכנית:</strong> בחירת גישת השינה המתאימה ובניית תוכנית עבודה מפורטת</li>
+    <li><strong>יישום וליווי:</strong> תמיכה בזמן אמת בזמן היישום — בדיוק כשהדברים קשים</li>
+    <li><strong>מעקב ועדכון:</strong> התאמת התוכנית על בסיס התוצאות בפועל</li>
+  </ol>
+
+  <h2>האם ייעוץ שינה בטוח?</h2>
+  <p>כן — כאשר מיושם בצורה מתאימה לגיל ולמצב הבריאותי של התינוק. חשוב לוודא שהתינוק בריא ולא סובל מבעיה רפואית שמשפיעה על שינתו (כגון ריפלוקס, בעיות נשימה וכדומה) לפני תחילת כל תהליך שינה.</p>
+  <p>המחקר המדעי מראה שגישות שינה שונות — כולל אלה שכוללות בכי מסוים — אינן גורמות לנזק רגשי לתינוקות כאשר מיושמות בגיל המתאים ועל ידי הורים קשובים.</p>
+
+  <div class="highlight-box">
+    <p>🔬 מחקר שפורסם ב-Pediatrics (2016) עקב אחרי ילדים למשך 5 שנים לאחר תהליך שינה ולא מצא כל הבדל בהתקשרות, ברמות קורטיזול או בהתפתחות רגשית בהשוואה לקבוצת הביקורת.</p>
+  </div>
+
+  <h2>ייעוץ שינה AI לעומת ייעוץ שינה אנושי</h2>
+  <p>ייעוץ שינה מקצועי עם יועצת אנושית יכול לעלות אלפי שקלים ולוקח שבועות. לרוב ההורים, הגישה הזו פשוט לא מעשית. יועצת שינה AI כמו נינה מאפשרת לקבל ייעוץ מקצועי, מותאם אישית, ב-24/7 — ממש כשצריך אותו.</p>
+  <p>נינה מכירה את כל גישות השינה המוכחות, שואלת שאלות מעמיקות, בונה תוכנית אישית ומלווה את ההורים בזמן אמת — לילה אחרי לילה, עד שמגיעים לתוצאות.</p>
+
+  <div class="cta-box">
+    <h3>מוכנים להתחיל?</h3>
+    <p>נינה תשאל כמה שאלות ותבנה עבורכם תוכנית שינה מותאמת אישית — עוד הלילה.</p>
+    <a href="/auth.html" class="btn-white">✨ רוצים לישון טוב – מתחילים עכשיו</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">🌙 נינה – יועצת שינה AI</div>
+  <p>© 2026 Connect AI Technologies LLC. כל הזכויות שמורות.</p>
+  <div class="footer-links">
+    <a href="/terms.html">תנאי שימוש</a>
+    <a href="/privacy.html">מדיניות פרטיות</a>
+    <a href="/accessibility.html">נגישות</a>
+    <a href="mailto:hello@ninababysleep.com">צור קשר</a>
+  </div>
+</footer>
+</body>
+</html>
