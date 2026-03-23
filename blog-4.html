@@ -181,7 +181,7 @@
 <!-- כלי נגישות -->
 <style>
 #a11y-widget{position:fixed;bottom:80px;left:20px;z-index:10000;font-family:'Heebo',Arial,sans-serif}
-#a11y-toggle{width:48px;height:48px;border-radius:50%;background:#7c5cbf;color:white;border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,92,191,.4);transition:transform .2s}
+#a11y-toggle{width:48px;height:48px;border-radius:50%;background:#7c5cbf;color:white;border:none;cursor:pointer;font-size:15px;font-weight:700;letter-spacing:-0.5px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,92,191,.4);transition:transform .2s}
 #a11y-toggle:hover{transform:scale(1.1)}
 #a11y-panel{display:none;position:absolute;bottom:58px;left:0;background:white;border:1px solid #e8e0f7;border-radius:16px;padding:16px;width:190px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
 #a11y-panel.open{display:block}
@@ -195,7 +195,7 @@ body.a11y-links a{text-decoration:underline!important;outline:2px solid #7c5cbf!
 body.a11y-font,body.a11y-font *{font-family:Arial,sans-serif!important}
 </style>
 <div id="a11y-widget">
-  <button id="a11y-toggle" onclick="toggleA11y()" aria-label="אפשרויות נגישות" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="5" r="2.5"/><path d="M17 12h-3V9h-4v3H7l2 8h2v-5h2v5h2z"/></svg></button>
+  <button id="a11y-toggle" onclick="toggleA11y()" aria-label="אפשרויות נגישות" aria-expanded="false">נג</button>
   <div id="a11y-panel" role="dialog" aria-label="תפריט נגישות">
     <div id="a11y-panel-title">כלי נגישות</div>
     <button class="a11y-btn" onclick="a11yFont(1)">הגדל טקסט  א+</button>
