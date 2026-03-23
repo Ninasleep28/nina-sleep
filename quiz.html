@@ -125,12 +125,12 @@
     <div class="card">
       <button class="back-btn" onclick="goTo('q1')">← חזרה</button>
       <div class="q-tag">האתגרים שלכם</div>
-      <h2 class="q-title">מה הכי קשה לכם עכשיו?</h2>
+      <h2 class="q-title">מה מציק לכם הכי הרבה בלילות?</h2>
       <div class="multi-hint">✌️ אפשר לבחור יותר מאחד</div>
       <div class="options">
         <div class="multi-option" data-v="no_independent" onclick="problemPick(this)"><div class="opt-icon">😮</div><div class="opt-text">לא נרדם לבד — צריך עזרה בכל הרדמה</div><div class="opt-box"></div></div>
         <div class="multi-option" data-v="wakings" onclick="problemPick(this)"><div class="opt-icon">🌪</div><div class="opt-text">מתעורר הרבה בלילה</div><div class="opt-box"></div></div>
-        <div class="multi-option" data-v="short_naps" onclick="problemPick(this)"><div class="opt-icon">⏱</div><div class="opt-text">שנות יום קצרות מדי</div><div class="opt-box"></div></div>
+        <div class="multi-option" data-v="short_naps" onclick="problemPick(this)"><div class="opt-icon">⏱</div><div class="opt-text">שנות יום קצרות (פחות מ-45 דקות)</div><div class="opt-box"></div></div>
         <div class="multi-option" data-v="bedtime" onclick="problemPick(this)"><div class="opt-icon">🕗</div><div class="opt-text">ההרדמה בערב לוקחת זמן רב</div><div class="opt-box"></div></div>
       </div>
       <button class="btn" id="btn-q2" disabled onclick="goTo('q3')">המשך ←</button>
@@ -143,8 +143,8 @@
     <div class="card">
       <button class="back-btn" onclick="goTo('q2')">← חזרה</button>
       <div class="q-tag">הסגנון שלך</div>
-      <h2 class="q-title">כשהתינוק בוכה, מה נכון לך?</h2>
-      <p class="q-sub">אין תשובה נכונה — זה עוזר להתאים גישה שתוכלו באמת לקיים</p>
+      <h2 class="q-title">איך אתם מרגישים עם בכי של התינוק?</h2>
+      <p class="q-sub">אין תשובה נכונה — כל גישה לגיטימית, זה עוזר לנו להתאים את הדרך הנכונה עבורכם</p>
       <div class="options">
         <div class="option" data-q="style" data-v="no_cry" onclick="pick(this)"><div class="opt-icon">❤️</div><div class="opt-text">לא מוכן/ה לשמוע בכי כלל — חייב להיות רך</div><div class="opt-check"></div></div>
         <div class="option" data-q="style" data-v="some_cry" onclick="pick(this)"><div class="opt-icon">😐</div><div class="opt-text">קצת בכי זה בסדר אם זה עוזר</div><div class="opt-check"></div></div>
