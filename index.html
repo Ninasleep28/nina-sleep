@@ -26,10 +26,11 @@
       backdrop-filter: blur(14px); border-bottom: 1px solid var(--purple-light);
     }
     .logo { display: flex; align-items: center; gap: 0.55rem; font-size: 1.55rem; font-weight: 900; color: var(--purple); }
+    .nav-right { display: flex; align-items: center; gap: 2.5rem; }
     .nav-links { display: flex; gap: 2rem; }
     .nav-links a { text-decoration: none; color: var(--text-soft); font-weight: 500; font-size: 0.92rem; transition: color 0.2s; }
     .nav-links a:hover { color: var(--purple); }
-    .nav-cta { background: var(--purple); color: var(--white) !important; padding: 0.45rem 1.2rem; border-radius: 999px; font-weight: 700 !important; }
+    .nav-cta { background: var(--purple); color: var(--white) !important; padding: 0.5rem 1.4rem; border-radius: 999px; font-weight: 700 !important; font-size: 0.92rem; text-decoration: none; }
     .section-tag { display: inline-block; background: var(--purple-light); color: var(--purple); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.3rem 1rem; border-radius: 999px; margin-bottom: 0.9rem; }
     h2 { font-size: clamp(1.75rem, 4vw, 2.6rem); font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem; }
     .sub { color: var(--text-soft); font-size: 1.02rem; max-width: 560px; margin: 0 auto; }
@@ -75,7 +76,7 @@
     .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
     .step p { font-size: 0.88rem; color: var(--text-soft); line-height: 1.6; }
     .approaches { background: var(--white); }
-    .approach-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 1.5rem; max-width: 980px; margin: 3rem auto 0; }
+    .approach-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 720px; margin: 3rem auto 0; }
     .acard { border-radius: var(--radius); padding: 1.8rem 1.6rem; border: 2px solid var(--purple-light); transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s; }
     .acard:hover { border-color: var(--purple-mid); box-shadow: var(--shadow-md); transform: translateY(-4px); }
     .acard-icon { font-size: 2rem; margin-bottom: 0.9rem; }
@@ -142,6 +143,14 @@
       nav { padding: 0.9rem 1.2rem; }
       .nav-links { display: none; }
       .hero-stats { gap: 1.8rem; }
+      .approach-cards { grid-template-columns: 1fr; max-width: 100%; }
+      .steps { grid-template-columns: 1fr; }
+      .tcard-grid { grid-template-columns: 1fr; }
+      table { font-size: 0.82rem; }
+      thead th, tbody td { padding: 0.7rem 0.8rem; }
+      h1 { letter-spacing: -0.5px; }
+      .hero { padding: 3rem 1.2rem; min-height: auto; }
+      section { padding: 3.5rem 1.2rem; }
     }
   </style>
 </head>
@@ -157,21 +166,21 @@
 </div>
 
 <nav>
-  <div class="logo">🌙 נינה</div>
-  <div class="nav-links">
-    <a href="#comparison">השוואה</a>
-    <a href="#process">התהליך</a>
-    <a href="#approaches">גישות</a>
-    <a href="#testimonials">המלצות</a>
-    <a href="/auth.html" class="nav-cta">התחל עכשיו</a>
+  <div class="nav-right">
+    <div class="logo">🌙 נינה</div>
+    <div class="nav-links">
+      <a href="#process">התהליך</a>
+      <a href="/blog.html">בלוג</a>
+    </div>
   </div>
+  <a href="/auth.html" class="nav-cta">התחל עכשיו</a>
 </nav>
 
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-badge"><span>🤖</span> יועצת שינה מבוססת בינה מלאכותית</div>
-    <h1>הלילות הקשים<br/>של המשפחה שלך<br/><em>הולכים להיגמר</em></h1>
-    <p class="hero-desc">נינה היא יועצת שינה AI שמלווה אתכם בוואטספ – 24/7, עם תוכנית אישית, דוחות לילה יומיים וניתוח מעמיק.</p>
+    <h1>הילד שלכם יכול<br/>לישון טוב.<br/><em>גם אתם.</em></h1>
+    <p class="hero-desc">נינה היא יועצת שינה AI שמלווה אתכם בוואטספ – 24/7, בזמן אמת, בדיוק כשאתם הכי צריכים.</p>
     <a href="/auth.html" class="btn-primary">✨ התחל עכשיו – 249 ₪ לחודש</a>
     <p class="hero-note">ללא התחייבות · ביטול בכל עת</p>
     <div class="hero-stats">
@@ -184,8 +193,8 @@
 
 <section class="comparison center" id="comparison">
   <span class="section-tag">השוואה</span>
-  <h2>נינה לעומת יועצת שינה רגילה</h2>
-  <p class="sub">למה לבחור בין יעילות לנגישות? נינה נותנת לכם את שניהם.</p>
+  <h2>נינה לעומת האלטרנטיבות</h2>
+  <p class="sub">ידע מקצועי שהיה שמור למעטים – עכשיו נגיש לכולם.</p>
   <div class="comparison-inner">
     <div class="table-wrap">
       <table>
@@ -193,20 +202,20 @@
           <tr>
             <th>מה מקבלים?</th>
             <th class="col-nina">🌙 נינה</th>
-            <th>יועצת שינה רגילה</th>
+            <th>יועצת שינה אנושית</th>
+            <th>צ'אט AI נפוץ</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>זמינות</td><td><span class="val-nina">24/7 – כולל שעה 3 בלילה</span></td><td><span class="val-other">שעות עבודה בלבד</span></td></tr>
-          <tr><td>משך ליווי</td><td><span class="val-nina">ללא הגבלת זמן</span></td><td><span class="val-other">6–8 שבועות</span></td></tr>
-          <tr><td>דוח לילה יומי</td><td><span class="yes">✓</span></td><td><span class="no">✗</span></td></tr>
-          <tr><td>ניתוח סביבת שינה</td><td><span class="yes">✓</span></td><td><span class="no">✗</span></td></tr>
-          <tr><td>התאמה לכל בני המשפחה</td><td><span class="yes">✓</span></td><td><span class="val-other">בדרך כלל הורה אחד</span></td></tr>
-          <tr><td>מחיר</td><td><span class="val-nina">249 ₪ לחודש</span></td><td><span class="val-other">1,500–2,500 ₪ חד-פעמי</span></td></tr>
+          <tr><td>זמינות</td><td><span class="val-nina">24/7 – כולל 3 לפנות בוקר</span></td><td><span class="val-other">שעות עבודה בלבד</span></td><td><span class="val-other">24/7 אך לא מותאם</span></td></tr>
+          <tr><td>משך ליווי</td><td><span class="val-nina">ללא הגבלת זמן</span></td><td><span class="val-other">6–8 שבועות</span></td><td><span class="val-other">ללא מעקב רציף</span></td></tr>
+          <tr><td>מחיר</td><td><span class="val-nina">נגיש</span></td><td><span class="val-other">אלפי שקלים</span></td><td><span class="val-other">חינמי אך גנרי</span></td></tr>
+          <tr><td>התאמה לתינוק, לסביבה ולהורים</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">✗</span></td></tr>
+          <tr><td>מעקב ועדכון תוכנית בזמן אמת</td><td><span class="yes">✓</span></td><td><span class="val-other">לעיתים</span></td><td><span class="no">✗</span></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="table-note"><strong>אנחנו לא מחליפים יועצת שינה –</strong> אנחנו נותנים מה שלא היה קיים קודם.</p>
+    <p class="table-note">נינה מחליפה את יועצת השינה – ומנגישה ידע מקצועי לכל משפחה, עם שירות אישי וזמין יותר.</p>
   </div>
 </section>
 
@@ -215,10 +224,10 @@
   <h2>ארבעה שלבים – ומתחילים</h2>
   <p class="sub">פשוט, מהיר, ומבלי לצאת מהבית.</p>
   <div class="steps">
-    <div class="step"><div class="step-num">1</div><span class="step-icon">📝</span><h3>ממלאים שאלון קצר</h3><p>כחמש דקות על התינוק, הרגלי השינה הנוכחיים ומה מאתגר אתכם הכי הרבה.</p></div>
-    <div class="step"><div class="step-num">2</div><span class="step-icon">🧠</span><h3>נינה מתאימה גישת שינה</h3><p>על בסיס גיל התינוק, אישיותו ואורח חיי המשפחה – נינה בוחרת את הגישה המתאימה.</p></div>
-    <div class="step"><div class="step-num">3</div><span class="step-icon">💳</span><h3>תשלום ונינה מצטרפת לוואטספ</h3><p>לאחר התשלום נינה שולחת לכם הודעה בוואטספ ומתחילה ללמוד את הדינמיקה המשפחתית.</p></div>
-    <div class="step"><div class="step-num">4</div><span class="step-icon">🌙</span><h3>הליווי מתחיל</h3><p>דוחות לילה יומיים, מענה לשאלות ועדכון התוכנית – 24/7, בזמן אמת.</p></div>
+    <div class="step"><div class="step-num">1</div><span class="step-icon">📝</span><h3>ממלאים שאלון קצר</h3><p>על התינוק, הרגלי השינה הנוכחיים והאתגרים שאתם מתמודדים איתם.</p></div>
+    <div class="step"><div class="step-num">2</div><span class="step-icon">🧠</span><h3>בוחרים גישת שינה</h3><p>לפי רצון ההורים, גישת הבית וצרכי התינוק – אתם בוחרים, נינה מתאימה.</p></div>
+    <div class="step"><div class="step-num">3</div><span class="step-icon">💳</span><h3>תשלום ותחילת ליווי בוואטספ</h3><p>אחרי התשלום מתחיל הקשר בוואטספ. נינה שולחת שאלון מפורט ובונה תוכנית עבודה מותאמת.</p></div>
+    <div class="step"><div class="step-num">4</div><span class="step-icon">🌙</span><h3>הליווי מתחיל</h3><p>24/7 בזמן אמת – מענה לשאלות, המלצות והתאמות בתוכנית בכל שלב של הדרך.</p></div>
   </div>
 </section>
 
@@ -239,9 +248,9 @@
   <h2>מה אומרות המשפחות</h2>
   <p class="sub">הורים אמיתיים שכבר ישנים טוב יותר.</p>
   <div class="tcard-grid">
-    <div class="tcard"><div class="tcard-stars">★★★★★</div><p>אחרי שמונה חודשים של לילות שבורים, תוך שבועיים הבן שלנו ישן שש שעות רצופות לראשונה בחייו.</p><div class="tcard-author"><div class="avatar av1">👩</div><div><div class="author-name">מיכל כ.</div><div class="author-meta">אמא לנועם, גיל 9 חודשים</div></div></div></div>
-    <div class="tcard"><div class="tcard-stars">★★★★★</div><p>ניסיתי יועצת פרטית ב-2,000 ₪. נינה עשתה יותר ב-249 ₪ לחודש – זמינה בשעה 3 בלילה כשבאמת צריך.</p><div class="tcard-author"><div class="avatar av2">👨</div><div><div class="author-name">אייל ו.</div><div class="author-meta">אבא לתאומות, גיל 5 חודשים</div></div></div></div>
-    <div class="tcard"><div class="tcard-stars">★★★★★</div><p>נינה לא כפתה שיטה. היא הקשיבה והתאימה את הגישה לאישיות של הבת שלנו.</p><div class="tcard-author"><div class="avatar av3">👩</div><div><div class="author-name">שירה ל.</div><div class="author-meta">אמא לרוני, גיל 7 חודשים</div></div></div></div>
+    <div class="tcard"><div class="tcard-stars">★★★★★</div><p>אחרי חודשים שלא ידענו מה זה לישון, תוך שבועיים הבן שלנו ישן לילה שלם לראשונה בחייו.</p><div class="tcard-author"><div class="avatar av1">👩</div><div><div class="author-name">מיכל כ.</div><div class="author-meta">אמא לנועם, גיל 9 חודשים</div></div></div></div>
+    <div class="tcard"><div class="tcard-stars">★★★★★</div><p>ניסיתי יועצת פרטית באלפי שקלים. נינה עשתה יותר – זמינה ב-3 לפנות בוקר כשבאמת צריך.</p><div class="tcard-author"><div class="avatar av2">👨</div><div><div class="author-name">אייל ו.</div><div class="author-meta">אבא לתאומות, גיל 5 חודשים</div></div></div></div>
+    <div class="tcard"><div class="tcard-stars">★★★★★</div><p>נינה לא כפתה שיטה. היא הקשיבה והתאימה את הגישה לגישת ההורים, לסביבה ולצרכי התינוק שלנו.</p><div class="tcard-author"><div class="avatar av3">👩</div><div><div class="author-name">שירה ל.</div><div class="author-meta">אמא לרוני, גיל 7 חודשים</div></div></div></div>
   </div>
 </section>
 
