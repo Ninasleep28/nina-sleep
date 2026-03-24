@@ -1,9 +1,5 @@
 {
   "version": 2,
-  "crons": [{
-    "path": "/cron/send-notifications",
-    "schedule": "* * * * *"
-  }],
   "builds": [
     { "src": "server.js", "use": "@vercel/node" },
     { "src": "index.html", "use": "@vercel/static" },
