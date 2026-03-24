@@ -15,6 +15,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
@@ -362,11 +363,17 @@ app.get("/config", (req, res) => {
 });
 
 app.post("/save-user", async (req, res) => {
-  const { userId, email } = req.body;
-  if (!userId || !email) return res.status(400).json({ message: "Missing userId or email" });
+  const { userId, email, fullname, whatsappNumber } = req.body;
+  if (!email) return res.status(400).json({ message: "Missing email" });
   try {
-    await saveUser(userId, email, false);
-    res.json({ ok: true });
+    const id = userId || crypto.randomUUID();
+    const { error } = await supabase.from("users").upsert({
+      id, email, is_premium: false,
+      ...(fullname && { full_name: fullname }),
+      ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
+    }, { onConflict: "id" });
+    if (error) throw error;
+    res.json({ ok: true, userId: id });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -411,6 +418,21 @@ app.post("/stripe-checkout", async (req, res) => {
   }
 });
 
+const FREE_MESSAGE_LIMIT = 5;
+const PAYMENT_LINK_MSG = "כדי להתחיל את תוכנית הליווי הצמוד — 249 ₪ לחודש: https://ninababysleep.com/payment.html";
+
+app.post("/start-free", async (req, res) => {
+  const { whatsappNumber } = req.body;
+  if (!whatsappNumber) return res.status(400).json({ message: "Missing whatsappNumber" });
+  try {
+    await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל שעה 3 בלילה כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק/תינוקת וגילו/ה בחודשים?`);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Error in /start-free:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 app.post("/webhook", async (req, res) => {
   const incomingMsg = req.body.Body?.trim();
   const from = req.body.From;
@@ -419,8 +441,34 @@ app.post("/webhook", async (req, res) => {
   res.send("<Response></Response>");
   waitUntil((async () => {
     try {
+      // Check if user is premium
+      const { data: user } = await supabase.from("users").select("is_premium, free_messages_count, plan_started").eq("whatsapp_number", from).single();
+      const isPremium = user?.is_premium === true;
+      const planStarted = user?.plan_started === true;
+      const freeCount = user?.free_messages_count || 0;
+
+      // If not premium and plan was sent, count messages
+      if (!isPremium && planStarted && freeCount >= FREE_MESSAGE_LIMIT) {
+        await sendWhatsApp(from, PAYMENT_LINK_MSG);
+        return;
+      }
+
       const reply = await askClaude(from, incomingMsg);
       await sendWhatsApp(from, reply);
+
+      // Check if plan was just sent (save_schedule was called = plan_started)
+      // Increment free message count for non-premium users after plan started
+      if (!isPremium && planStarted) {
+        await supabase.from("users").update({ free_messages_count: freeCount + 1 }).eq("whatsapp_number", from);
+      }
+
+      // Detect if plan was just sent by checking if schedule exists now
+      if (!isPremium && !planStarted) {
+        const { data: schedule } = await supabase.from("schedules").select("phone_number").eq("phone_number", from).single();
+        if (schedule) {
+          await supabase.from("users").update({ plan_started: true }).eq("whatsapp_number", from);
+        }
+      }
     } catch (err) {
       console.error("Error:", err);
       try { await sendWhatsApp(from, "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"); }

@@ -19,6 +19,7 @@
   ],
   "routes": [
     { "src": "/cron/send-notifications", "dest": "/server.js" },
+    { "src": "/start-free", "dest": "/server.js" },
     { "src": "/webhook", "dest": "/server.js" },
     { "src": "/config", "dest": "/server.js" },
     { "src": "/stripe-checkout", "dest": "/server.js" },

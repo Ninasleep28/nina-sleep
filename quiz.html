@@ -253,9 +253,8 @@
       <div class="cta-box">
         <div class="cta-title">🌟 רוצה תוכנית מותאמת אישית?</div>
         <div class="cta-sub">נינה תלווה אותך יום יום בוואטספ — תנתח יומני שינה ותסביר בדיוק מה לעשות בכל שלב</div>
-        <a href="/payment.html" style="text-decoration:none">
-          <button class="btn" style="margin-top:0">🌙 התחילו עכשיו</button>
-        </a>
+        <button class="btn" style="margin-top:0" id="btn-start-nina" onclick="startNina()">💬 בואו נתחיל לדבר עם נינה בוואטספ</button>
+        <div id="start-nina-msg" style="margin-top:10px;font-size:13px;display:none;"></div>
       </div>
       <button class="btn ghost" onclick="goTo('intro')">← חזרה לשאלון</button>
     </div>
@@ -395,6 +394,43 @@ function showResults(){
   document.getElementById('r-insight').textContent = insight;
   document.getElementById('r-blog-link').innerHTML = `<a href="${blogUrl}" target="_blank">📖 ${blogLabels[blogUrl]} ←</a>`;
   goTo('results');
+}
+
+async function startNina() {
+  const whatsapp = localStorage.getItem('nina_whatsapp');
+  const btn = document.getElementById('btn-start-nina');
+  const msg = document.getElementById('start-nina-msg');
+
+  if (!whatsapp) {
+    msg.style.display = 'block';
+    msg.style.color = '#ff6464';
+    msg.textContent = 'לא נמצא מספר וואטספ — חזרו להרשמה';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'שולח...';
+
+  try {
+    const res = await fetch('/start-free', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ whatsappNumber: whatsapp })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Error');
+
+    msg.style.display = 'block';
+    msg.style.color = '#6fcf97';
+    msg.textContent = '✅ נינה שלחה לך הודעה בוואטספ! בדקו את הטלפון';
+    btn.textContent = '✅ נשלח!';
+  } catch (err) {
+    msg.style.display = 'block';
+    msg.style.color = '#ff6464';
+    msg.textContent = 'שגיאה בשליחה, נסו שוב';
+    btn.disabled = false;
+    btn.textContent = '💬 בואו נתחיל לדבר עם נינה בוואטספ';
+  }
 }
 </script>
 
