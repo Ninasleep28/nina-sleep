@@ -459,11 +459,22 @@ app.get("/status", async (_req, res) => {
   res.json({ activeConversations: data.length, conversations: data.map(r => ({ phone: r.phone_number, turns: r.messages.length / 2, lastActivity: r.updated_at })) });
 });
 
+// Normalize time to HH:mm — handles "23:25:00", "4:00", "04:00", etc.
+function normalizeTime(t) {
+  if (!t) return null;
+  const parts = t.trim().split(":");
+  if (parts.length < 2) return null;
+  return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
+}
+
 app.post("/cron/send-notifications", async (req, res) => {
   try {
     const { data: schedules, error } = await supabase.from("schedules").select("*");
     if (error) throw error;
-    if (!schedules || schedules.length === 0) return res.json({ ok: true, sent: 0 });
+    if (!schedules || schedules.length === 0) {
+      console.log("[CRON] No schedules found");
+      return res.json({ ok: true, sent: 0 });
+    }
 
     let sent = 0;
 
@@ -475,70 +486,93 @@ app.post("/cron/send-notifications", async (req, res) => {
       const now = dayjs().tz(tz);
       const currentTime = now.format("HH:mm");
 
+      const wakeTime = normalizeTime(s.wake_time);
+      const bedtime = normalizeTime(s.bedtime);
+      const morningNapStart = normalizeTime(s.morning_nap_start);
+      const afternoonNapStart = normalizeTime(s.afternoon_nap_start);
+      const wakeupTimes = Array.isArray(s.wakeup_times) ? s.wakeup_times.map(normalizeTime).filter(Boolean) : [];
+
+      console.log(`[CRON] phone=${phone} tz=${tz} now=${currentTime} wake=${wakeTime} bed=${bedtime} naps=${morningNapStart},${afternoonNapStart} wakeups=${JSON.stringify(wakeupTimes)}`);
+
       // Morning message + increment nights_count
-      if (s.wake_time === currentTime) {
+      if (wakeTime === currentTime) {
+        console.log(`[CRON] MATCH wake_time for ${phone}`);
         await sendWhatsApp(phone, "בוקר טוב! ☀️ איך היה הלילה? ספרו לי הכל — כמה יקיצות, כמה זמן לקח להירדם מחדש, ואיך אתם מרגישים.");
         await supabase.from("schedules").update({ nights_count: (s.nights_count || 0) + 1 }).eq("phone_number", phone);
         sent++;
       }
 
       // Morning nap start
-      if (s.morning_nap_start === currentTime) {
+      if (morningNapStart === currentTime) {
+        console.log(`[CRON] MATCH morning_nap_start for ${phone}`);
         await sendWhatsApp(phone, "הגיע זמן שינת בוקר 😴 שמתם לישון? ספרו לי איך ההרדמה.");
         sent++;
       }
 
       // Morning nap end
-      if (s.morning_nap_start && s.morning_nap_duration) {
-        if (addMinutesToTime(s.morning_nap_start, s.morning_nap_duration) === currentTime) {
+      if (morningNapStart && s.morning_nap_duration) {
+        const napEnd = addMinutesToTime(morningNapStart, s.morning_nap_duration);
+        if (napEnd === currentTime) {
+          console.log(`[CRON] MATCH morning_nap_end for ${phone}`);
           await sendWhatsApp(phone, "קם/ה משינת הבוקר? כמה זמן ישן/ה בסוף?");
           sent++;
         }
       }
 
       // Afternoon nap start
-      if (s.afternoon_nap_start === currentTime) {
+      if (afternoonNapStart === currentTime) {
+        console.log(`[CRON] MATCH afternoon_nap_start for ${phone}`);
         await sendWhatsApp(phone, "הגיע זמן שינת צהריים 😴 שמתם לישון? ספרו לי איך ההרדמה.");
         sent++;
       }
 
       // Afternoon nap end
-      if (s.afternoon_nap_start && s.afternoon_nap_duration) {
-        if (addMinutesToTime(s.afternoon_nap_start, s.afternoon_nap_duration) === currentTime) {
+      if (afternoonNapStart && s.afternoon_nap_duration) {
+        const napEnd = addMinutesToTime(afternoonNapStart, s.afternoon_nap_duration);
+        if (napEnd === currentTime) {
+          console.log(`[CRON] MATCH afternoon_nap_end for ${phone}`);
           await sendWhatsApp(phone, "קם/ה משינת הצהריים? כמה זמן ישן/ה בסוף?");
           sent++;
         }
       }
 
       // Bedtime reminder (15 min before)
-      if (s.bedtime && addMinutesToTime(s.bedtime, -15) === currentTime) {
-        await sendWhatsApp(phone, "עוד 15 דקות מתחיל טקס ההרדמה 🌙 מוכנים?");
-        sent++;
+      if (bedtime) {
+        const reminder = addMinutesToTime(bedtime, -15);
+        if (reminder === currentTime) {
+          console.log(`[CRON] MATCH bedtime_reminder for ${phone}`);
+          await sendWhatsApp(phone, "עוד 15 דקות מתחיל טקס ההרדמה 🌙 מוכנים?");
+          sent++;
+        }
       }
 
       // Bedtime start
-      if (s.bedtime === currentTime) {
+      if (bedtime === currentTime) {
+        console.log(`[CRON] MATCH bedtime for ${phone}`);
         await sendWhatsApp(phone, "מתחילים טקס הרדמה! 🌙 עדכנו אותי צעד אחר צעד.");
         sent++;
       }
 
       // Night wakeup check
-      if (Array.isArray(s.wakeup_times) && s.wakeup_times.includes(currentTime)) {
+      if (wakeupTimes.includes(currentTime)) {
+        console.log(`[CRON] MATCH wakeup_time ${currentTime} for ${phone}`);
         await sendWhatsApp(phone, "הכל בסדר? אם קם/ה — ספרו לי ואדריך אתכם.");
         sent++;
       }
 
       // 3-night assessment (sent at morning time)
-      if ((s.nights_count || 0) >= 3 && !s.last_assessment && s.wake_time === currentTime) {
+      if ((s.nights_count || 0) >= 3 && !s.last_assessment && wakeTime === currentTime) {
+        console.log(`[CRON] MATCH 3-night assessment for ${phone}`);
         await sendWhatsApp(phone, "עברו 3 לילות! 🎯 הגיע זמן להערכת מצב. איך אתם מרגישים? מה השתפר ומה עדיין קשה?");
         await supabase.from("schedules").update({ last_assessment: new Date().toISOString() }).eq("phone_number", phone);
         sent++;
       }
     }
 
+    console.log(`[CRON] Done. Sent ${sent} notifications.`);
     res.json({ ok: true, sent });
   } catch (err) {
-    console.error("Cron error:", err);
+    console.error("[CRON] Error:", err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
