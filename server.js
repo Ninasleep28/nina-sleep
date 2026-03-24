@@ -6,7 +6,6 @@ import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
 import Stripe from "stripe";
-import cron from "cron";
 import nodemailer from "nodemailer";
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@supabase/supabase-js";
@@ -107,6 +106,12 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 4. בסוף התוכנית הוסיפי: "חשוב לדעת — ההצלחה תלויה בשיתוף הפעולה שלכם. עדכנו אותי בכל התעוררות, ארוחה ושינה — הודעה קצרה בוואטספ מספיקה. אחרי 3 לילות נעשה יחד הערכת מצב ונחליט האם להמשיך, לחזור צעד אחורה, או להתקדם."
 5. שאלי: באיזו שעה מתחיל טקס ההרדמה הערב?
 
+שמירת לו"ז:
+אחרי שסיימת את השאלון ושלחת תוכנית — השתמשי בכלי save_schedule כדי לשמור את לו"ז השינה.
+חלצי מהשיחה: שעת יקיצה בבוקר (wake_time), שנות יום — שעת תחילה ומשך בדקות (morning_nap_start, morning_nap_duration, afternoon_nap_start, afternoon_nap_duration), שעת טקס הרדמה (bedtime), ושעות יקיצות לילה (wakeup_times).
+כל השעות בפורמט HH:MM (למשל "07:00", "19:30").
+אם ההורה מעדכן בהמשך שמשהו השתנה (למשל "הורדנו שנת בוקר" או "עכשיו הוא קם ב-6") — השתמשי שוב ב-save_schedule עם כל הנתונים המעודכנים.
+
 פרוטוקול ערבי:
 - רבע שעה לפני הטקס: שלחי תזכורת
 - בזמן הטקס: לווי צעד אחר צעד
@@ -141,6 +146,46 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 - שפה מכילה מגדרית: תמיד "התינוק/תינוקת" או "הילד/ה", לעולם לא "הקטן" או "שמו של הקטן"
 - שאלות ספציפיות וכמותיות: במקום "לוקח הרבה זמן?" שאלי "כמה דקות בערך לוקח עד שנרדם/ת?". במקום "קם הרבה בלילה?" שאלי "כמה פעמים קם/ה הלילה?". תמיד בקשי מספרים — דקות, פעמים, שעות
 - תמיד מאשרת ומבינה לפני שנותנת עצה`;
+
+const SCHEDULE_TOOLS = [{
+  name: "save_schedule",
+  description: "Save or update the baby's sleep schedule to enable automated notifications. Call this after sending the 7-day plan, or when the parent reports a schedule change.",
+  input_schema: {
+    type: "object",
+    properties: {
+      wake_time: { type: "string", description: "Morning wake time in HH:MM format, e.g. '07:00'" },
+      morning_nap_start: { type: "string", description: "Morning nap start time in HH:MM, e.g. '09:30'" },
+      morning_nap_duration: { type: "number", description: "Morning nap duration in minutes, e.g. 45" },
+      afternoon_nap_start: { type: "string", description: "Afternoon nap start time in HH:MM, e.g. '13:00'" },
+      afternoon_nap_duration: { type: "number", description: "Afternoon nap duration in minutes, e.g. 60" },
+      bedtime: { type: "string", description: "Bedtime routine start time in HH:MM, e.g. '19:00'" },
+      wakeup_times: { type: "array", items: { type: "string" }, description: "Typical night wakeup times in HH:MM, e.g. ['01:00', '04:00']" }
+    },
+    required: ["wake_time", "bedtime"]
+  }
+}];
+
+function addMinutesToTime(timeStr, minutes) {
+  const [h, m] = timeStr.split(":").map(Number);
+  const total = h * 60 + m + minutes;
+  const wrapped = ((total % 1440) + 1440) % 1440;
+  return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
+}
+
+async function saveSchedule(phone, data) {
+  const { error } = await supabase.from("schedules").upsert({
+    phone_number: phone,
+    wake_time: data.wake_time,
+    morning_nap_start: data.morning_nap_start || null,
+    morning_nap_duration: data.morning_nap_duration || null,
+    afternoon_nap_start: data.afternoon_nap_start || null,
+    afternoon_nap_duration: data.afternoon_nap_duration || null,
+    bedtime: data.bedtime,
+    wakeup_times: data.wakeup_times || [],
+    updated_at: new Date().toISOString()
+  }, { onConflict: "phone_number" });
+  if (error) throw error;
+}
 
 async function loadHistory(phone) {
   const { data, error } = await supabase.from("conversations").select("messages").eq("phone_number", phone).single();
@@ -194,58 +239,42 @@ async function sendWhatsApp(to, body) {
   await twilioClient.messages.create({ from: TWILIO_WHATSAPP_NUMBER, to, body });
 }
 
-async function sendTimerNotifications() {
-  try {
-    const now = new Date();
-    const in15 = new Date(now.getTime() + 15 * 60000);
-    // טבלה לשעות שינה מתוזמנות (bedtime, morning_time)
-    const { data: schedules, error } = await supabase
-      .from("sleep_schedules")
-      .select("id,user_id,whatsapp_number,bedtime,morning_time")
-      .or(`bedtime.eq.${now.toISOString()},morning_time.eq.${now.toISOString()}`); // לצורך דוגמה
-
-    if (error) { console.error("Error fetching schedules:", error); return; }
-
-    for (const row of schedules || []) {
-      if (!row.whatsapp_number) continue;
-      const nextBed = new Date(row.bedtime);
-      const nextMorning = new Date(row.morning_time);
-      const diffToBed = (nextBed.getTime() - now.getTime()) / 60000;
-      const diffToMorning = (nextMorning.getTime() - now.getTime()) / 60000;
-
-      if (diffToBed >= 0 && diffToBed <= 16) {
-        await sendWhatsApp(row.whatsapp_number, "תזכורת: עוד 15 דקות מתחיל טקס ההרדמה. האם אתם מוכנים? 🌙");
-      }
-      if (diffToMorning >= 0 && diffToMorning <= 16) {
-        await sendWhatsApp(row.whatsapp_number, "בוקר טוב! איך עבר הלילה? אם פתרתם משהו שווה, ספרו לי כדי שאתעדכן.");
-      }
-    }
-  } catch (err) {
-    console.error("Error in sendTimerNotifications:", err);
-  }
-}
-
-function startScheduledJobs() {
-  try {
-    new cron.CronJob("*/5 * * * *", sendTimerNotifications, null, true, "Israel");
-    console.log("Scheduled jobs started: sendTimerNotifications every 5 minutes.");
-  } catch (err) {
-    console.error("Error starting scheduled jobs:", err);
-  }
-}
-
-startScheduledJobs();
-
 async function askClaude(phone, userMessage) {
   const history = await loadHistory(phone);
   history.push({ role: "user", content: userMessage });
-  const response = await anthropic.messages.create({
-    model: "claude-opus-4-6", max_tokens: 1024, system: SYSTEM_PROMPT, messages: history,
+
+  let allText = "";
+  let response = await anthropic.messages.create({
+    model: "claude-opus-4-6", max_tokens: 1024, system: SYSTEM_PROMPT, messages: history, tools: SCHEDULE_TOOLS,
   });
-  const assistantText = response.content.filter((b) => b.type === "text").map((b) => b.text).join("");
-  history.push({ role: "assistant", content: assistantText });
+
+  while (response.stop_reason === "tool_use") {
+    allText += response.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+    history.push({ role: "assistant", content: response.content });
+
+    const toolUse = response.content.find((b) => b.type === "tool_use");
+    let toolResult = "Unknown tool";
+
+    if (toolUse.name === "save_schedule") {
+      try {
+        await saveSchedule(phone, toolUse.input);
+        toolResult = "Schedule saved successfully";
+      } catch (err) {
+        toolResult = `Error saving schedule: ${err.message}`;
+      }
+    }
+
+    history.push({ role: "user", content: [{ type: "tool_result", tool_use_id: toolUse.id, content: toolResult }] });
+
+    response = await anthropic.messages.create({
+      model: "claude-opus-4-6", max_tokens: 1024, system: SYSTEM_PROMPT, messages: history, tools: SCHEDULE_TOOLS,
+    });
+  }
+
+  allText += response.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+  history.push({ role: "assistant", content: response.content });
   await saveHistory(phone, history);
-  return assistantText;
+  return allText;
 }
 
 const app = express();
@@ -419,6 +448,90 @@ app.get("/status", async (_req, res) => {
   const { data, error } = await supabase.from("conversations").select("phone_number, messages, updated_at").order("updated_at", { ascending: false });
   if (error) return res.status(500).json({ ok: false, error: error.message });
   res.json({ activeConversations: data.length, conversations: data.map(r => ({ phone: r.phone_number, turns: r.messages.length / 2, lastActivity: r.updated_at })) });
+});
+
+app.post("/cron/send-notifications", async (req, res) => {
+  try {
+    const now = new Date();
+    const israelTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" }));
+    const currentTime = `${String(israelTime.getHours()).padStart(2, "0")}:${String(israelTime.getMinutes()).padStart(2, "0")}`;
+
+    const { data: schedules, error } = await supabase.from("schedules").select("*");
+    if (error) throw error;
+    if (!schedules || schedules.length === 0) return res.json({ ok: true, sent: 0 });
+
+    let sent = 0;
+
+    for (const s of schedules) {
+      const phone = s.phone_number;
+      if (!phone) continue;
+
+      // Morning message + increment nights_count
+      if (s.wake_time === currentTime) {
+        await sendWhatsApp(phone, "בוקר טוב! ☀️ איך היה הלילה? ספרו לי הכל — כמה יקיצות, כמה זמן לקח להירדם מחדש, ואיך אתם מרגישים.");
+        await supabase.from("schedules").update({ nights_count: (s.nights_count || 0) + 1 }).eq("phone_number", phone);
+        sent++;
+      }
+
+      // Morning nap start
+      if (s.morning_nap_start === currentTime) {
+        await sendWhatsApp(phone, "הגיע זמן שינת בוקר 😴 שמתם לישון? ספרו לי איך ההרדמה.");
+        sent++;
+      }
+
+      // Morning nap end
+      if (s.morning_nap_start && s.morning_nap_duration) {
+        if (addMinutesToTime(s.morning_nap_start, s.morning_nap_duration) === currentTime) {
+          await sendWhatsApp(phone, "קם/ה משינת הבוקר? כמה זמן ישן/ה בסוף?");
+          sent++;
+        }
+      }
+
+      // Afternoon nap start
+      if (s.afternoon_nap_start === currentTime) {
+        await sendWhatsApp(phone, "הגיע זמן שינת צהריים 😴 שמתם לישון? ספרו לי איך ההרדמה.");
+        sent++;
+      }
+
+      // Afternoon nap end
+      if (s.afternoon_nap_start && s.afternoon_nap_duration) {
+        if (addMinutesToTime(s.afternoon_nap_start, s.afternoon_nap_duration) === currentTime) {
+          await sendWhatsApp(phone, "קם/ה משינת הצהריים? כמה זמן ישן/ה בסוף?");
+          sent++;
+        }
+      }
+
+      // Bedtime reminder (15 min before)
+      if (s.bedtime && addMinutesToTime(s.bedtime, -15) === currentTime) {
+        await sendWhatsApp(phone, "עוד 15 דקות מתחיל טקס ההרדמה 🌙 מוכנים?");
+        sent++;
+      }
+
+      // Bedtime start
+      if (s.bedtime === currentTime) {
+        await sendWhatsApp(phone, "מתחילים טקס הרדמה! 🌙 עדכנו אותי צעד אחר צעד.");
+        sent++;
+      }
+
+      // Night wakeup check
+      if (Array.isArray(s.wakeup_times) && s.wakeup_times.includes(currentTime)) {
+        await sendWhatsApp(phone, "הכל בסדר? אם קם/ה — ספרו לי ואדריך אתכם.");
+        sent++;
+      }
+
+      // 3-night assessment (sent at morning time)
+      if ((s.nights_count || 0) >= 3 && !s.last_assessment && s.wake_time === currentTime) {
+        await sendWhatsApp(phone, "עברו 3 לילות! 🎯 הגיע זמן להערכת מצב. איך אתם מרגישים? מה השתפר ומה עדיין קשה?");
+        await supabase.from("schedules").update({ last_assessment: new Date().toISOString() }).eq("phone_number", phone);
+        sent++;
+      }
+    }
+
+    res.json({ ok: true, sent, time: currentTime });
+  } catch (err) {
+    console.error("Cron error:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 if (process.env.VERCEL !== "1") {

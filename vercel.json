@@ -1,5 +1,9 @@
 {
   "version": 2,
+  "crons": [{
+    "path": "/cron/send-notifications",
+    "schedule": "* * * * *"
+  }],
   "builds": [
     { "src": "server.js", "use": "@vercel/node" },
     { "src": "index.html", "use": "@vercel/static" },
@@ -18,6 +22,7 @@
     { "src": "blog-5.html", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/cron/send-notifications", "dest": "/server.js" },
     { "src": "/webhook", "dest": "/server.js" },
     { "src": "/config", "dest": "/server.js" },
     { "src": "/stripe-checkout", "dest": "/server.js" },
