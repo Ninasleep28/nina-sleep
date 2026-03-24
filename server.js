@@ -6,7 +6,13 @@ import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import twilio from "twilio";
 import Stripe from "stripe";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
 import nodemailer from "nodemailer";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@supabase/supabase-js";
 import { fileURLToPath } from "url";
@@ -455,10 +461,6 @@ app.get("/status", async (_req, res) => {
 
 app.post("/cron/send-notifications", async (req, res) => {
   try {
-    const now = new Date();
-    const israelTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" }));
-    const currentTime = `${String(israelTime.getHours()).padStart(2, "0")}:${String(israelTime.getMinutes()).padStart(2, "0")}`;
-
     const { data: schedules, error } = await supabase.from("schedules").select("*");
     if (error) throw error;
     if (!schedules || schedules.length === 0) return res.json({ ok: true, sent: 0 });
@@ -468,6 +470,10 @@ app.post("/cron/send-notifications", async (req, res) => {
     for (const s of schedules) {
       const phone = s.phone_number;
       if (!phone) continue;
+
+      const tz = s.timezone || "Asia/Jerusalem";
+      const now = dayjs().tz(tz);
+      const currentTime = now.format("HH:mm");
 
       // Morning message + increment nights_count
       if (s.wake_time === currentTime) {
@@ -530,7 +536,7 @@ app.post("/cron/send-notifications", async (req, res) => {
       }
     }
 
-    res.json({ ok: true, sent, time: currentTime });
+    res.json({ ok: true, sent });
   } catch (err) {
     console.error("Cron error:", err);
     res.status(500).json({ ok: false, error: err.message });
