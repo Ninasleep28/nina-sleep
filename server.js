@@ -33,7 +33,7 @@ const MAX_HISTORY_TURNS = 20;
 
 const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית לתינוקות ופעוטות.
 את מדברת עברית בלבד, בטון חם, אמפתי, ולא שיפוטי.
-את האוזן הקשבת של ההורים בשעות הכי קשות - שעה 3 בלילה כשהכל מרגיש בלתי אפשרי.
+את האוזן הקשבת של ההורים בשעות הכי קשות - 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.
 את מקצועית, ישירה, וחכמה - אבל תמיד רואה קודם כל את ההורה ואת הילד, לא את השיטה.
 
 עקרונות ליבה:
@@ -316,7 +316,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
     waitUntil((async () => {
       try {
         await saveUser(userId, email, true, whatsappNumber);
-        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל שעה 3 בלילה כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק ומה גילו בחודשים?`);
+        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק ומה גילו בחודשים?`);
       } catch (err) { console.error("Error processing payment webhook:", err); }
     })());
   }
@@ -493,7 +493,7 @@ app.post("/start-free", async (req, res) => {
   const { whatsappNumber } = req.body;
   if (!whatsappNumber) return res.status(400).json({ message: "Missing whatsappNumber" });
   try {
-    await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל שעה 3 בלילה כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק/תינוקת וגילו/ה בחודשים?`);
+    await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק/תינוקת וגילו/ה בחודשים?`);
     res.json({ ok: true });
   } catch (error) {
     console.error("Error in /start-free:", error);
