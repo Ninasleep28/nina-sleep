@@ -80,7 +80,7 @@
       <div class="phone-hint">המספר שבו תקבלו הודעות מנינה</div>
     </div>
     <div class="marketing-consent">
-      <input type="checkbox" id="marketing-consent" checked />
+      <input type="checkbox" id="marketing-consent" />
       <label for="marketing-consent">אני מסכים/ה לקבל הודעות וואטספ מנינה לצורך ייעוץ שינה</label>
     </div>
     <button class="btn-primary" id="submit-btn" onclick="handleSignup()">המשך לשאלון ←</button>
@@ -111,6 +111,7 @@
     if (!fullname) return showMessage('נא למלא שם מלא', 'error');
     if (!email) return showMessage('נא למלא אימייל', 'error');
     if (!whatsapp) return showMessage('נא למלא מספר וואטספ', 'error');
+    if (!document.getElementById('marketing-consent').checked) return showMessage('נא לאשר קבלת הודעות וואטספ כדי להמשיך', 'error');
 
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
