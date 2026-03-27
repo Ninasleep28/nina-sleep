@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -26,6 +27,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const MAX_HISTORY_TURNS = 20;
 
@@ -382,6 +384,64 @@ app.post("/save-user", async (req, res) => {
     }, { onConflict: "id" });
     if (error) throw error;
     res.json({ ok: true, userId: id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/send-verification", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Missing email" });
+  try {
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+    // Delete old codes for this email
+    await supabase.from("verification_codes").delete().eq("email", email);
+
+    // Save new code
+    const { error } = await supabase.from("verification_codes").insert({ email, code, expires_at: expiresAt });
+    if (error) throw error;
+
+    // Send email via Resend
+    await resend.emails.send({
+      from: "נינה <hello@ninababysleep.com>",
+      to: email,
+      subject: "קוד אימות - נינה יועצת שינה",
+      html: `<div dir="rtl" style="font-family:Arial,sans-serif;text-align:center;padding:40px 20px;">
+        <h2 style="color:#764ba2;">🌙 נינה</h2>
+        <p style="font-size:16px;color:#333;">קוד האימות שלך:</p>
+        <div style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#764ba2;margin:20px 0;">${code}</div>
+        <p style="font-size:13px;color:#888;">הקוד תקף ל-10 דקות</p>
+      </div>`
+    });
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Error sending verification:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/verify-code", async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ message: "Missing email or code" });
+  try {
+    const { data, error } = await supabase
+      .from("verification_codes")
+      .select("code, expires_at")
+      .eq("email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) return res.status(400).json({ ok: false, message: "לא נמצא קוד — נסו לשלוח שוב" });
+    if (new Date(data.expires_at) < new Date()) return res.status(400).json({ ok: false, message: "הקוד פג תוקף — נסו לשלוח שוב" });
+    if (data.code !== code) return res.status(400).json({ ok: false, message: "קוד שגוי" });
+
+    // Clean up used code
+    await supabase.from("verification_codes").delete().eq("email", email);
+    res.json({ ok: true });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

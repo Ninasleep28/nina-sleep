@@ -83,7 +83,16 @@
       <input type="checkbox" id="marketing-consent" />
       <label for="marketing-consent">אני מסכים/ה לקבל הודעות וואטספ מנינה לצורך ייעוץ שינה</label>
     </div>
-    <button class="btn-primary" id="submit-btn" onclick="handleSignup()">המשך לשאלון ←</button>
+    <button class="btn-primary" id="submit-btn" onclick="handleSignup()">המשך ←</button>
+  </div>
+  <div id="verify-form" style="display:none;">
+    <p style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:20px;">שלחנו קוד אימות בן 6 ספרות לכתובת המייל שהזנתם</p>
+    <div class="form-group" style="text-align:center;">
+      <label>קוד אימות</label>
+      <input type="text" id="verify-code" placeholder="000000" dir="ltr" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:8px;" />
+    </div>
+    <button class="btn-primary" id="verify-btn" onclick="handleVerify()">אימות והמשך לשאלון ←</button>
+    <button class="btn-resend" onclick="resendCode()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;margin-top:12px;font-family:'Heebo',sans-serif;">לא קיבלתם? שלחו שוב</button>
   </div>
   <div class="message" id="message"></div>
 </div>
@@ -103,6 +112,8 @@
     return 'whatsapp:+' + d;
   }
 
+  let pendingEmail = '';
+
   async function handleSignup() {
     const fullname = document.getElementById('fullname').value.trim();
     const email = document.getElementById('email').value.trim();
@@ -115,24 +126,84 @@
 
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
-    btn.textContent = 'שומר...';
+    btn.textContent = 'שולח קוד אימות...';
 
     try {
-      const res = await fetch('/save-user', {
+      const res = await fetch('/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullname, email, whatsappNumber: formatWhatsApp(whatsapp) })
+        body: JSON.stringify({ email })
       });
-      if (!res.ok) throw new Error('Failed to save');
+      if (!res.ok) throw new Error('Failed to send');
 
-      localStorage.setItem('nina_email', email);
-      localStorage.setItem('nina_whatsapp', formatWhatsApp(whatsapp));
+      pendingEmail = email;
       localStorage.setItem('nina_fullname', fullname);
+      localStorage.setItem('nina_whatsapp', formatWhatsApp(whatsapp));
+      localStorage.setItem('nina_email', email);
+
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('verify-form').style.display = 'block';
+      showMessage('', '');
+    } catch (err) {
+      showMessage('שגיאה בשליחת קוד, נסו שוב', 'error');
+      btn.disabled = false;
+      btn.textContent = 'המשך ←';
+    }
+  }
+
+  async function handleVerify() {
+    const code = document.getElementById('verify-code').value.trim();
+    if (!code || code.length !== 6) return showMessage('נא להזין קוד בן 6 ספרות', 'error');
+
+    const btn = document.getElementById('verify-btn');
+    btn.disabled = true;
+    btn.textContent = 'מאמת...';
+
+    try {
+      const res = await fetch('/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingEmail, code })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.message || 'קוד שגוי', 'error');
+        btn.disabled = false;
+        btn.textContent = 'אימות והמשך לשאלון ←';
+        return;
+      }
+
+      // Verified — save user and redirect
+      await fetch('/save-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullname: localStorage.getItem('nina_fullname'),
+          email: pendingEmail,
+          whatsappNumber: localStorage.getItem('nina_whatsapp')
+        })
+      });
+
       window.location.href = '/quiz.html';
     } catch (err) {
-      showMessage('שגיאה בשמירה, נסו שוב', 'error');
+      showMessage('שגיאה באימות, נסו שוב', 'error');
       btn.disabled = false;
-      btn.textContent = 'המשך לשאלון ←';
+      btn.textContent = 'אימות והמשך לשאלון ←';
+    }
+  }
+
+  async function resendCode() {
+    showMessage('שולח קוד חדש...', 'success');
+    try {
+      const res = await fetch('/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingEmail })
+      });
+      if (!res.ok) throw new Error();
+      showMessage('קוד חדש נשלח למייל', 'success');
+    } catch {
+      showMessage('שגיאה בשליחה, נסו שוב', 'error');
     }
   }
 </script>
