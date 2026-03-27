@@ -259,14 +259,30 @@ async function sendWhatsApp(to, body) {
   await twilioClient.messages.create({ from: TWILIO_WHATSAPP_NUMBER, to, body });
 }
 
+async function callClaudeWithRetry(params, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await anthropic.messages.create(params);
+    } catch (err) {
+      const status = err?.status || err?.statusCode;
+      if ((status === 529 || status === 503) && i < retries - 1) {
+        console.log(`[Claude] ${status} error, retry ${i + 1}/${retries - 1} in 3s...`);
+        await new Promise((r) => setTimeout(r, 3000));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 async function askClaude(phone, userMessage) {
   const history = await loadHistory(phone);
   history.push({ role: "user", content: userMessage });
 
+  const claudeParams = { model: "claude-opus-4-6", max_tokens: 1024, system: SYSTEM_PROMPT, messages: history, tools: SCHEDULE_TOOLS };
+
   let allText = "";
-  let response = await anthropic.messages.create({
-    model: "claude-opus-4-6", max_tokens: 1024, system: SYSTEM_PROMPT, messages: history, tools: SCHEDULE_TOOLS,
-  });
+  let response = await callClaudeWithRetry(claudeParams);
 
   while (response.stop_reason === "tool_use") {
     allText += response.content.filter((b) => b.type === "text").map((b) => b.text).join("");
@@ -286,9 +302,7 @@ async function askClaude(phone, userMessage) {
 
     history.push({ role: "user", content: [{ type: "tool_result", tool_use_id: toolUse.id, content: toolResult }] });
 
-    response = await anthropic.messages.create({
-      model: "claude-opus-4-6", max_tokens: 1024, system: SYSTEM_PROMPT, messages: history, tools: SCHEDULE_TOOLS,
-    });
+    response = await callClaudeWithRetry({ ...claudeParams, messages: history });
   }
 
   allText += response.content.filter((b) => b.type === "text").map((b) => b.text).join("");
