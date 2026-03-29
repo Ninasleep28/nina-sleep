@@ -228,7 +228,7 @@ async function saveUser(userId, email, isPremium = false, whatsappNumber = null)
   if (error) { console.error("Error saving user:", error); throw error; }
 }
 
-const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886";
+const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+972559557203";
 
 const emailTransporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.sendgrid.net",
