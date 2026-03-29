@@ -368,7 +368,37 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
     } catch (err) {
       console.error("Failed handling invoice.payment_succeeded:", err);
     }
-  }res.json({ received: true });
+  }
+  else if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object;
+    const customerId = subscription.customer;
+    console.log(`Subscription deleted for customer ${customerId}`);
+    try {
+      const customer = await stripe.customers.retrieve(customerId);
+      if (customer?.email) {
+        await supabase.from("users").update({ is_premium: false }).eq("email", customer.email);
+        console.log(`Set is_premium=false for ${customer.email}`);
+      }
+    } catch (err) {
+      console.error("Failed handling subscription.deleted:", err);
+    }
+  }
+  else if (event.type === "customer.subscription.updated") {
+    const subscription = event.data.object;
+    const customerId = subscription.customer;
+    console.log(`Subscription updated for customer ${customerId}, status: ${subscription.status}`);
+    try {
+      const customer = await stripe.customers.retrieve(customerId);
+      if (customer?.email) {
+        const isActive = subscription.status === "active" || subscription.status === "trialing";
+        await supabase.from("users").update({ is_premium: isActive }).eq("email", customer.email);
+        console.log(`Set is_premium=${isActive} for ${customer.email}`);
+      }
+    } catch (err) {
+      console.error("Failed handling subscription.updated:", err);
+    }
+  }
+  res.json({ received: true });
 });
 
 app.use(express.urlencoded({ extended: false }));
@@ -481,11 +511,11 @@ app.post("/api/sleep-session", async (req, res) => {
 });
 
 app.post("/stripe-checkout", async (req, res) => {
-  const { email, userId, whatsappNumber } = req.body;
+  const { email, userId, whatsappNumber, couponCode } = req.body;
   if (!email || !userId) return res.status(400).json({ message: "Missing email or userId" });
   if (!whatsappNumber) return res.status(400).json({ message: "Missing WhatsApp number" });
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams = {
       payment_method_types: ["card"],
       mode: "subscription",
       customer_email: email,
@@ -493,7 +523,16 @@ app.post("/stripe-checkout", async (req, res) => {
       success_url: `https://ninababysleep.com/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://ninababysleep.com/payment.html`,
       metadata: { userId, whatsappNumber, email },
-    });
+    };
+
+    // Handle coupons
+    if (couponCode === "NINA7") {
+      sessionParams.subscription_data = { trial_period_days: 7 };
+    } else if (couponCode === "NINA20" && process.env.STRIPE_COUPON_NINA20) {
+      sessionParams.discounts = [{ coupon: process.env.STRIPE_COUPON_NINA20 }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
     res.json({ checkoutUrl: session.url });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -515,6 +554,30 @@ app.post("/start-free", async (req, res) => {
   }
 });
 
+// Track pending cancellations
+const pendingCancellations = new Set();
+
+async function cancelSubscription(phone) {
+  // Find user by whatsapp number
+  const { data: user } = await supabase.from("users").select("email").eq("whatsapp_number", phone).single();
+  if (!user?.email) throw new Error("User not found");
+
+  // Find Stripe customer by email
+  const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+  if (!customers.data.length) throw new Error("No Stripe customer");
+
+  // Find active subscription
+  const subs = await stripe.subscriptions.list({ customer: customers.data[0].id, status: "active", limit: 1 });
+  if (!subs.data.length) throw new Error("No active subscription");
+
+  // Cancel at period end
+  await stripe.subscriptions.update(subs.data[0].id, { cancel_at_period_end: true });
+
+  // Update Supabase
+  await supabase.from("users").update({ is_premium: false }).eq("whatsapp_number", phone);
+  return true;
+}
+
 app.post("/webhook", async (req, res) => {
   const incomingMsg = req.body.Body?.trim();
   const from = req.body.From;
@@ -523,6 +586,33 @@ app.post("/webhook", async (req, res) => {
   res.send("<Response></Response>");
   waitUntil((async () => {
     try {
+      const msgLower = incomingMsg.toLowerCase();
+
+      // Handle cancellation confirmation
+      if (pendingCancellations.has(from)) {
+        pendingCancellations.delete(from);
+        if (msgLower === "כן" || msgLower === "כן, בטל" || msgLower === "כן בטל") {
+          try {
+            await cancelSubscription(from);
+            await sendWhatsApp(from, "המנוי בוטל בהצלחה. אם תרצו לחזור — תמיד אפשר 💜\nנינה כאן בשבילכם.");
+          } catch (err) {
+            console.error("Cancel error:", err);
+            await sendWhatsApp(from, "לא הצלחתי לבטל את המנוי. פנו אלינו: hello@ninababysleep.com");
+          }
+          return;
+        } else {
+          await sendWhatsApp(from, "שמחה שנשארים! 💜 אני כאן בשבילכם.");
+          return;
+        }
+      }
+
+      // Detect cancellation request
+      if (msgLower.includes("ביטול") || msgLower.includes("לבטל") || msgLower.includes("בטל מנוי")) {
+        pendingCancellations.add(from);
+        await sendWhatsApp(from, "חבל שאתם עוזבים 😔\n\nלפני שמבטלים — אם יש משהו שלא עבד, אשמח לשמוע ולנסות לעזור.\n\nאם בכל זאת רוצים לבטל, שלחו: כן, בטל");
+        return;
+      }
+
       // Check if user is premium
       const { data: user } = await supabase.from("users").select("is_premium, free_messages_count, plan_started").eq("whatsapp_number", from).single();
       const isPremium = user?.is_premium === true;
@@ -538,7 +628,6 @@ app.post("/webhook", async (req, res) => {
       const reply = await askClaude(from, incomingMsg);
       await sendWhatsApp(from, reply);
 
-      // Check if plan was just sent (save_schedule was called = plan_started)
       // Increment free message count for non-premium users after plan started
       if (!isPremium && planStarted) {
         await supabase.from("users").update({ free_messages_count: freeCount + 1 }).eq("whatsapp_number", from);

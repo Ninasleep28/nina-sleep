@@ -403,7 +403,7 @@
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
  
-  let appliedDiscount = 0;
+  let appliedCoupon = null;
   let currentSession = null;
  
   // Listen for auth state changes
@@ -442,18 +442,17 @@
     }
  
     const validCoupons = {
-      'WELCOME10': 10,
-      'SAVE20': 20,
-      'FRIEND25': 25,
+      'NINA7': { label: '✓ קופון פעיל! 7 ימי ניסיון חינם', type: 'trial' },
+      'NINA20': { label: '✓ קופון פעיל! הנחה של 20%', type: 'discount' },
     };
  
     if (validCoupons[couponCode]) {
-      appliedDiscount = validCoupons[couponCode];
-      feedback.textContent = `✓ קופון פעיל! הנחה של ${appliedDiscount}%`;
+      appliedCoupon = couponCode;
+      feedback.textContent = validCoupons[couponCode].label;
       feedback.className = 'coupon-feedback success';
       document.getElementById('coupon-input').disabled = true;
     } else {
-      appliedDiscount = 0;
+      appliedCoupon = null;
       feedback.textContent = 'קופון לא תקף';
       feedback.className = 'coupon-feedback error';
     }
@@ -482,7 +481,7 @@
           email: currentSession.user.email,
           userId: currentSession.user.id,
           whatsappNumber: whatsappNumber,
-          couponCode: document.getElementById('coupon-input').value.trim().toUpperCase() || null
+          couponCode: appliedCoupon || null
         })
       });
  
