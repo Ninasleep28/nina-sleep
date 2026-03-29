@@ -101,6 +101,87 @@
     .btn-white { display: inline-block; background: var(--white); color: var(--purple); font-size: 1.12rem; font-weight: 800; padding: 1rem 3rem; border-radius: 999px; text-decoration: none; box-shadow: 0 6px 28px rgba(0,0,0,0.18); transition: transform 0.2s; }
     .btn-white:hover { transform: translateY(-2px); }
     .cta-sub { margin-top: 1.1rem; font-size: 0.85rem; color: rgba(255,255,255,0.68); }
+    /* WhatsApp Demo */
+    .demo-section { background: var(--white); padding: 5rem 1.5rem; text-align: center; }
+    .demo-phone {
+      width: 340px; height: 620px; margin: 2.5rem auto 0;
+      background: #efeae2; border-radius: 36px; overflow: hidden;
+      display: flex; flex-direction: column; position: relative;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18), 0 0 0 3px #222, 0 0 0 6px #444;
+    }
+    .demo-phone::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(214,207,196,0.08) 20px, rgba(214,207,196,0.08) 40px);
+    }
+    .demo-header {
+      background: #075e54; color: white; padding: 10px 14px;
+      display: flex; align-items: center; gap: 10px; z-index: 10; flex-shrink: 0;
+    }
+    .demo-avatar {
+      width: 34px; height: 34px; background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .demo-header-name { font-size: 14px; font-weight: 700; }
+    .demo-header-status { font-size: 11px; opacity: 0.75; }
+    .demo-chat {
+      flex: 1; overflow-y: auto; padding: 6px 10px 10px;
+      display: flex; flex-direction: column; gap: 3px; z-index: 1;
+      scroll-behavior: smooth;
+    }
+    .demo-chat::-webkit-scrollbar { width: 3px; }
+    .demo-chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
+    .demo-date {
+      align-self: center; background: rgba(225,218,208,0.9); color: #54656f;
+      font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 7px; margin: 6px 0;
+    }
+    .demo-bubble {
+      max-width: 82%; padding: 6px 8px 4px; border-radius: 8px;
+      font-size: 13px; line-height: 1.5; text-align: right;
+      box-shadow: 0 1px 0.5px rgba(0,0,0,0.1);
+      opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s;
+    }
+    .demo-bubble.show { opacity: 1; transform: translateY(0); }
+    .demo-bubble.nina { background: white; align-self: flex-start; border-top-right-radius: 0; }
+    .demo-bubble.user { background: #d9fdd3; align-self: flex-end; border-top-left-radius: 0; }
+    .demo-meta { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: 1px; }
+    .demo-time { font-size: 10px; color: #667781; }
+    .demo-check { font-size: 11px; color: #53bdeb; }
+    .demo-typing {
+      align-self: flex-start; background: white; padding: 8px 14px;
+      border-radius: 8px; border-top-right-radius: 0;
+      display: none; gap: 3px; align-items: center;
+      box-shadow: 0 1px 0.5px rgba(0,0,0,0.1);
+    }
+    .demo-typing.show { display: flex; }
+    .demo-typing-dot {
+      width: 6px; height: 6px; background: #9ca3af; border-radius: 50%;
+      animation: demoBounce 1.2s infinite;
+    }
+    .demo-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .demo-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes demoBounce { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-3px);opacity:1} }
+    .demo-input-bar {
+      background: #f0f2f5; padding: 5px 7px; display: flex; align-items: center; gap: 6px;
+      z-index: 10; flex-shrink: 0; font-size: 12px; color: #667781;
+    }
+    .demo-input-field {
+      flex: 1; background: white; border-radius: 20px; padding: 8px 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .demo-input-field span:first-child { font-size: 16px; }
+    .demo-mic { width: 34px; height: 34px; background: #00a884; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .demo-replay {
+      display: none; margin: 1.2rem auto 0;
+      background: linear-gradient(135deg, var(--purple), var(--purple-mid));
+      color: white; border: none; border-radius: 999px; padding: 10px 24px;
+      font-size: 14px; font-weight: 700; font-family: 'Heebo', sans-serif;
+      cursor: pointer; transition: transform 0.2s;
+    }
+    .demo-replay.show { display: inline-block; }
+    .demo-replay:hover { transform: translateY(-2px); }
+    @media (max-width: 680px) { .demo-phone { width: 300px; height: 560px; } .demo-bubble { font-size: 12.5px; } }
+
     .included { background: var(--white); padding: 5rem 1.5rem; text-align: center; }
     .included-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 720px; margin: 2.5rem auto 0; }
     .included-card { background: var(--purple-pale); border-radius: 18px; padding: 1.8rem 1.5rem; text-align: right; }
@@ -246,6 +327,32 @@
   </div>
 </section>
 
+<section class="demo-section center" id="demo">
+  <span class="section-tag">דמו</span>
+  <h2>ככה זה נראה בפועל</h2>
+  <p class="sub">שיחה אמיתית בין הורה לנינה בוואטספ</p>
+  <div class="demo-phone">
+    <div class="demo-header">
+      <span style="font-size:18px;opacity:0.9;">←</span>
+      <div class="demo-avatar">🌙</div>
+      <div>
+        <div class="demo-header-name">נינה - יועצת שינה</div>
+        <div class="demo-header-status" id="demo-status">מקוון</div>
+      </div>
+    </div>
+    <div class="demo-chat" id="demo-chat"></div>
+    <div class="demo-input-bar">
+      <div class="demo-input-field">
+        <span>😊</span>
+        <span style="flex:1;opacity:0.5;">הקלד הודעה</span>
+        <span>📎</span>
+      </div>
+      <div class="demo-mic">🎤</div>
+    </div>
+  </div>
+  <button class="demo-replay" id="demo-replay" onclick="startWaDemo()">▶ הפעל שוב</button>
+</section>
+
 <section class="approaches center" id="approaches">
   <span class="section-tag">גישות שינה</span>
   <h2>נינה מכירה את כולן</h2>
@@ -344,6 +451,95 @@ function toggleFaq(btn) {
   document.querySelectorAll('.faq-q.open').forEach(b => { b.classList.remove('open'); b.nextElementSibling.classList.remove('open'); });
   if (!isOpen) { btn.classList.add('open'); answer.classList.add('open'); }
 }
+
+// WhatsApp Demo
+(function(){
+  const demoMsgs = [
+    { type:'date', text:'היום' },
+    { type:'nina', time:'20:31', text:'היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 — כולל 3 לפנות בוקר.\n\nנתחיל: מה שם התינוק/תינוקת וגילו/ה בחודשים?', delay:1800 },
+    { type:'user', time:'20:33', text:'היי נינה! עידו, בן 8 חודשים 😊', delay:3000 },
+    { type:'nina', time:'20:33', text:'שמחה להכיר, עידו בן 8 חודשים 💜\n\nאיך עידו נרדם כרגע? (הנקה, בקבוק, נדנוד, לבד?)\nוכמה דקות זה לוקח בערך?', delay:2200 },
+    { type:'user', time:'20:35', text:'נרדם רק עם הנקה, לוקח 30-40 דקות כל ערב. וקם 4-5 פעמים בלילה 😩', delay:3500 },
+    { type:'nina', time:'20:35', text:'את לא לבד — זה המצב הכי שכיח שאני פוגשת.\n\n4-5 יקיצות עם הרדמה של 40 דקות זה מתיש. אבל בגיל 8 חודשים אפשר לשנות את זה לגמרי.\n\nעוד כמה שאלות ואני בונה לכם תוכנית 🌙', delay:2500 },
+    { type:'date', text:'למחרת · 06:45', delay:2500 },
+    { type:'nina', time:'06:45', text:'☀️ בוקר טוב! איך היה הלילה?\nלא קיבלתי עדכונים אמש — ספרו לי בקצרה.', delay:1800 },
+    { type:'user', time:'07:02', text:'לילה קשה... קם 5 פעמים, בשלוש בלילה לא הצלחתי להחזיר אותו בלי הנקה. אני שבורה', delay:3500 },
+    { type:'nina', time:'07:02', text:'שומעת אותך 💜 לילות כאלה שוחקים.\n\nהנה מה שנעשה הערב אחרת:\n1. נקדים טקס הרדמה ל-19:00\n2. הנקה לפני האמבטיה, לא אחריה\n3. ביקיצה של 3 — 5 דקות המתנה לפני שנכנסים\n\nאני אשלח תזכורת ב-18:45 🌙', delay:3000 },
+  ];
+
+  const chat = document.getElementById('demo-chat');
+  const status = document.getElementById('demo-status');
+  const replayBtn = document.getElementById('demo-replay');
+  let demoRunning = false;
+
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  function makeBubble(m){
+    if(m.type==='date'){
+      const d=document.createElement('div'); d.className='demo-date'; d.textContent=m.text; return d;
+    }
+    const d=document.createElement('div');
+    d.className='demo-bubble '+(m.type==='nina'?'nina':'user');
+    const t=document.createElement('div');
+    t.innerHTML=m.text.replace(/\n/g,'<br>');
+    d.appendChild(t);
+    const meta=document.createElement('div');
+    meta.className='demo-meta';
+    meta.innerHTML='<span class="demo-time">'+m.time+'</span>'+(m.type==='user'?'<span class="demo-check">✓✓</span>':'');
+    d.appendChild(meta);
+    return d;
+  }
+
+  window.startWaDemo = async function(){
+    if(demoRunning) return;
+    demoRunning=true;
+    chat.innerHTML='';
+    replayBtn.classList.remove('show');
+
+    const typing=document.createElement('div');
+    typing.className='demo-typing';
+    typing.innerHTML='<div class="demo-typing-dot"></div><div class="demo-typing-dot"></div><div class="demo-typing-dot"></div>';
+    chat.appendChild(typing);
+
+    for(const m of demoMsgs){
+      const delay=m.delay||1500;
+      if(m.type==='date'){
+        await sleep(delay);
+        const el=makeBubble(m);
+        chat.insertBefore(el,typing);
+        chat.scrollTop=chat.scrollHeight;
+        continue;
+      }
+      if(m.type==='nina'){
+        status.textContent='מקליד...';
+        typing.classList.add('show');
+        chat.scrollTop=chat.scrollHeight;
+        await sleep(Math.min(Math.max(m.text.length*10,1000),3000));
+        typing.classList.remove('show');
+        status.textContent='מקוון';
+      } else {
+        await sleep(delay);
+      }
+      const el=makeBubble(m);
+      chat.insertBefore(el,typing);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+      chat.scrollTop=chat.scrollHeight;
+      await sleep(700);
+    }
+    await sleep(1500);
+    replayBtn.classList.add('show');
+    demoRunning=false;
+  };
+
+  // Start when section is visible
+  const obs=new IntersectionObserver((entries)=>{
+    if(entries[0].isIntersecting){
+      startWaDemo();
+      obs.disconnect();
+    }
+  },{threshold:0.3});
+  obs.observe(document.getElementById('demo'));
+})();
 </script>
 
 <script>
