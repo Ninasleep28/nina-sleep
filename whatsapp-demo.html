@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nina WhatsApp Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Heebo', sans-serif;
+}
+.phone {
+  width: 390px;
+  height: 844px;
+  background: #efeae2;
+  border-radius: 40px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 60px rgba(0,0,0,0.5);
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='60' height='60' patternUnits='userSpaceOnUse'%3E%3Cpath d='M30 5 Q35 15 30 25 Q25 15 30 5z' fill='%23d6cfc4' opacity='0.3'/%3E%3Ccircle cx='10' cy='40' r='2' fill='%23d6cfc4' opacity='0.2'/%3E%3Ccircle cx='50' cy='45' r='1.5' fill='%23d6cfc4' opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header */
+.wa-header {
+  background: #075e54;
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  flex-shrink: 0;
+}
+.wa-header .back { font-size: 20px; opacity: 0.9; }
+.wa-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.wa-header-info { flex: 1; }
+.wa-header-name { font-size: 16px; font-weight: 700; }
+.wa-header-status { font-size: 12px; opacity: 0.75; }
+.wa-header-icons { display: flex; gap: 18px; font-size: 18px; opacity: 0.9; }
+
+/* Chat area */
+.wa-chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 1;
+  scroll-behavior: smooth;
+}
+.wa-chat::-webkit-scrollbar { width: 4px; }
+.wa-chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+
+/* Date badge */
+.date-badge {
+  align-self: center;
+  background: rgba(225,218,208,0.9);
+  color: #54656f;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 8px;
+  margin: 8px 0;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+}
+
+/* Bubbles */
+.bubble {
+  max-width: 82%;
+  padding: 6px 8px 4px;
+  border-radius: 8px;
+  font-size: 14.2px;
+  line-height: 1.55;
+  position: relative;
+  word-wrap: break-word;
+  box-shadow: 0 1px 0.5px rgba(0,0,0,0.1);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.bubble.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.bubble-nina {
+  background: white;
+  align-self: flex-start;
+  border-top-right-radius: 0;
+}
+.bubble-user {
+  background: #d9fdd3;
+  align-self: flex-end;
+  border-top-left-radius: 0;
+}
+.bubble-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 2px;
+}
+.bubble-time {
+  font-size: 11px;
+  color: #667781;
+}
+.bubble-check {
+  font-size: 13px;
+  color: #53bdeb;
+}
+
+/* Typing indicator */
+.typing {
+  align-self: flex-start;
+  background: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border-top-right-radius: 0;
+  display: none;
+  gap: 4px;
+  align-items: center;
+  box-shadow: 0 1px 0.5px rgba(0,0,0,0.1);
+}
+.typing.show { display: flex; }
+.typing-dot {
+  width: 7px; height: 7px;
+  background: #9ca3af;
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Input bar */
+.wa-input {
+  background: #f0f2f5;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+  flex-shrink: 0;
+}
+.wa-input-box {
+  flex: 1;
+  background: white;
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #667781;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wa-input-box span { flex: 1; }
+.wa-input-icons { font-size: 18px; opacity: 0.6; display: flex; gap: 10px; }
+.wa-mic {
+  width: 42px; height: 42px;
+  background: #00a884;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Replay */
+.replay-bar {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: none;
+}
+.replay-bar.show { display: block; }
+.replay-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Heebo', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+  transition: transform 0.2s;
+}
+.replay-btn:hover { transform: scale(1.05); }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="wa-header">
+    <div class="back">←</div>
+    <div class="wa-avatar">🌙</div>
+    <div class="wa-header-info">
+      <div class="wa-header-name">נינה - יועצת שינה</div>
+      <div class="wa-header-status" id="header-status">מקוון</div>
+    </div>
+    <div class="wa-header-icons">
+      <span>📹</span>
+      <span>📞</span>
+      <span>⋮</span>
+    </div>
+  </div>
+
+  <div class="wa-chat" id="chat"></div>
+
+  <div class="wa-input">
+    <div class="wa-input-box">
+      <span>😊</span>
+      <span style="flex:1;opacity:0.5;">הקלד הודעה</span>
+      <div class="wa-input-icons">
+        <span>📎</span>
+        <span>📷</span>
+      </div>
+    </div>
+    <div class="wa-mic">🎤</div>
+  </div>
+
+  <div class="replay-bar" id="replay-bar">
+    <button class="replay-btn" onclick="startDemo()">▶ הפעל שוב</button>
+  </div>
+</div>
+
+<script>
+const messages = [
+  { type: 'date', text: 'היום' },
+  {
+    type: 'nina', time: '20:31',
+    text: 'היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 — כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת.\nנתחיל: מה שם התינוק/תינוקת וגילו/ה בחודשים?',
+    delay: 2000
+  },
+  {
+    type: 'user', time: '20:33',
+    text: 'היי נינה! השם שלו עידו, בן 8 חודשים 😊',
+    delay: 3500
+  },
+  {
+    type: 'nina', time: '20:33',
+    text: 'שמחה להכיר, עידו בן 8 חודשים 💜\n\nאיך עידו נרדם כרגע בדיוק? (הנקה, בקבוק, נדנוד בעמידה, הליכה, ליד הורה במיטה, לבד?)\nוכמה דקות זה לוקח בערך?',
+    delay: 2500
+  },
+  {
+    type: 'user', time: '20:35',
+    text: 'נרדם רק עם הנקה, לוקח בערך 30-40 דקות כל ערב. ואז קם 4-5 פעמים בלילה 😩',
+    delay: 4000
+  },
+  {
+    type: 'nina', time: '20:35',
+    text: 'את לא לבד עם זה — זה המצב הכי שכיח שאני פוגשת.\n\n4-5 יקיצות עם הרדמה של 40 דקות זה מתיש. אבל החדשות הטובות: בגיל 8 חודשים אפשר לשנות את זה לגמרי.\n\nעוד כמה שאלות ואני בונה לכם תוכנית 🌙',
+    delay: 3000
+  },
+  { type: 'date', text: 'למחרת · 06:45', delay: 3000 },
+  {
+    type: 'nina', time: '06:45',
+    text: '☀️ בוקר טוב! איך היה הלילה?\nלא קיבלתי עדכונים אמש — ספרו לי בקצרה.',
+    delay: 2000
+  },
+  {
+    type: 'user', time: '07:02',
+    text: 'לילה קשה... קם 5 פעמים, בשלוש בלילה לא הצלחתי להחזיר אותו בלי הנקה. אני שבורה',
+    delay: 4000
+  },
+  {
+    type: 'nina', time: '07:02',
+    text: 'שומעת אותך 💜 לילות כאלה שוחקים.\n\nהנה מה שנעשה הערב אחרת:\n\n1. נקדים את טקס ההרדמה ל-19:00 — עידו כנראה עייף מדי ב-19:30\n2. הנקה תהיה *לפני* האמבטיה, לא אחריה — ככה הוא לא נרדם על השד\n3. ביקיצה של 3 בלילה — 5 דקות המתנה לפני שנכנסים. לפעמים הם מסתדרים\n\nאני אשלח תזכורת ב-18:45. את מוכנה? 🌙',
+    delay: 3500
+  },
+];
+
+const chat = document.getElementById('chat');
+const headerStatus = document.getElementById('header-status');
+const replayBar = document.getElementById('replay-bar');
+
+function createBubble(msg) {
+  const div = document.createElement('div');
+  if (msg.type === 'date') {
+    div.className = 'date-badge';
+    div.textContent = msg.text;
+    return div;
+  }
+  div.className = `bubble bubble-${msg.type === 'nina' ? 'nina' : 'user'}`;
+  const textEl = document.createElement('div');
+  textEl.innerHTML = msg.text.replace(/\n/g, '<br>');
+  div.appendChild(textEl);
+
+  const meta = document.createElement('div');
+  meta.className = 'bubble-meta';
+  meta.innerHTML = `<span class="bubble-time">${msg.time}</span>${msg.type === 'user' ? '<span class="bubble-check">✓✓</span>' : ''}`;
+  div.appendChild(meta);
+  return div;
+}
+
+function createTyping() {
+  const div = document.createElement('div');
+  div.className = 'typing';
+  div.id = 'typing';
+  div.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  return div;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function startDemo() {
+  chat.innerHTML = '';
+  replayBar.classList.remove('show');
+
+  const typing = createTyping();
+  chat.appendChild(typing);
+
+  for (const msg of messages) {
+    const delay = msg.delay || 1500;
+
+    if (msg.type === 'date') {
+      await sleep(delay);
+      const el = createBubble(msg);
+      chat.insertBefore(el, typing);
+      chat.scrollTop = chat.scrollHeight;
+      continue;
+    }
+
+    // Show typing indicator for nina
+    if (msg.type === 'nina') {
+      headerStatus.textContent = 'מקליד...';
+      typing.classList.add('show');
+      chat.scrollTop = chat.scrollHeight;
+      // Typing duration based on message length
+      const typingTime = Math.min(Math.max(msg.text.length * 12, 1200), 3500);
+      await sleep(typingTime);
+      typing.classList.remove('show');
+      headerStatus.textContent = 'מקוון';
+    } else {
+      // User messages: just wait
+      await sleep(delay);
+    }
+
+    const el = createBubble(msg);
+    chat.insertBefore(el, typing);
+    // Trigger animation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => el.classList.add('show'));
+    });
+    chat.scrollTop = chat.scrollHeight;
+
+    // Pause between messages
+    await sleep(800);
+  }
+
+  // Show replay button
+  await sleep(2000);
+  replayBar.classList.add('show');
+}
+
+// Auto start
+startDemo();
+</script>
+</body>
+</html>
