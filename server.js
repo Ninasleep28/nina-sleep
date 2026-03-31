@@ -61,6 +61,12 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 פרוטוקול היכרות - מיד אחרי תשלום:
 שלחי הודעת וולקאם חמה, ואז שאלי בלוק אחד של שאלות בכל פעם — המתיני לתשובה לפני שממשיכים לבלוק הבא. השאלות תמיד ספציפיות וכמותיות.
 
+בלוק 0 — היכרות אישית (תמיד ראשון!):
+מה שמך? ואתה אבא או אמא? 😊
+--- המתיני לתשובה ---
+אחרי שקיבלת תשובה: השתמשי בכלי save_parent_info כדי לשמור את השם ואת המגדר (male/female).
+מהבלוק הבא ואילך — פני להורה בשמו/ה ובלשון המתאימה (זכר או נקבה) בכל הודעה.
+
 בלוק 1 — הרדמה:
 מה שם התינוק/תינוקת וגילו/ה בחודשים?
 ---
@@ -158,6 +164,7 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 - משפטים קצרים - הורים עייפים לא קוראים טקסטים ארוכים
 - אמוג'ים מינימלי - רק כשעוזר
 - שפה מכילה מגדרית: תמיד "התינוק/תינוקת" או "הילד/ה", לעולם לא "הקטן" או "שמו של הקטן"
+- כשיש מידע על שם ומגדר ההורה — פני אליו/ה בשם ובלשון המתאימה (זכר/נקבה) בכל הודעה
 - שאלות ספציפיות וכמותיות: במקום "לוקח הרבה זמן?" שאלי "כמה דקות בערך לוקח עד שנרדם/ת?". במקום "קם הרבה בלילה?" שאלי "כמה פעמים קם/ה הלילה?". תמיד בקשי מספרים — דקות, פעמים, שעות
 - תמיד מאשרת ומבינה לפני שנותנת עצה
 
@@ -168,6 +175,17 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 אם ההורה אומר במפורש "אני רוצה לבדוק את המערכת" או "זה בדיקה" — קבלי כל שעה שהוא נותן ושמרי אותה ב-save_schedule ללא שאלות ובלי התנגדות. דלגי על השאלון ושמרי ישר.`;
 
 const SCHEDULE_TOOLS = [{
+  name: "save_parent_info",
+  description: "Save the parent's name and gender after the introductory question. Call this as soon as the parent answers the name/gender question.",
+  input_schema: {
+    type: "object",
+    properties: {
+      parent_name: { type: "string", description: "The parent's first name" },
+      parent_gender: { type: "string", enum: ["male", "female"], description: "The parent's gender: 'male' for אבא, 'female' for אמא" }
+    },
+    required: ["parent_name", "parent_gender"]
+  }
+}, {
   name: "save_schedule",
   description: "Save or update the baby's sleep schedule to enable automated notifications. Call this after sending the 7-day plan, or when the parent reports a schedule change.",
   input_schema: {
@@ -279,7 +297,17 @@ async function askClaude(phone, userMessage) {
   const history = await loadHistory(phone);
   history.push({ role: "user", content: userMessage });
 
-  const claudeParams = { model: "claude-opus-4-6", max_tokens: 1024, system: SYSTEM_PROMPT, messages: history, tools: SCHEDULE_TOOLS };
+  // Fetch parent info for personalized responses
+  const { data: parentData } = await supabase.from("users").select("parent_name, parent_gender").eq("whatsapp_number", phone).single();
+  let systemPrompt = SYSTEM_PROMPT;
+  if (parentData?.parent_name) {
+    const genderNote = parentData.parent_gender === "male"
+      ? `שם ההורה: ${parentData.parent_name} (אבא). דברי אליו בלשון זכר.`
+      : `שם ההורה: ${parentData.parent_name} (אמא). דברי אליה בלשון נקבה.`;
+    systemPrompt += `\n\n--- מידע אישי על ההורה ---\n${genderNote}\nהשתמשי בשם שלו/ה בהודעות באופן טבעי.`;
+  }
+
+  const claudeParams = { model: "claude-opus-4-6", max_tokens: 1024, system: systemPrompt, messages: history, tools: SCHEDULE_TOOLS };
 
   let allText = "";
   let response = await callClaudeWithRetry(claudeParams);
@@ -291,7 +319,17 @@ async function askClaude(phone, userMessage) {
     const toolUse = response.content.find((b) => b.type === "tool_use");
     let toolResult = "Unknown tool";
 
-    if (toolUse.name === "save_schedule") {
+    if (toolUse.name === "save_parent_info") {
+      try {
+        await supabase.from("users").update({
+          parent_name: toolUse.input.parent_name,
+          parent_gender: toolUse.input.parent_gender
+        }).eq("whatsapp_number", phone);
+        toolResult = "Parent info saved successfully";
+      } catch (err) {
+        toolResult = `Error saving parent info: ${err.message}`;
+      }
+    } else if (toolUse.name === "save_schedule") {
       try {
         await saveSchedule(phone, toolUse.input);
         toolResult = "Schedule saved successfully";
@@ -330,7 +368,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
     waitUntil((async () => {
       try {
         await saveUser(userId, email, true, whatsappNumber);
-        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק ומה גילו בחודשים?`);
+        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שמך? ואתה אבא או אמא? 😊`);
       } catch (err) { console.error("Error processing payment webhook:", err); }
     })());
   }
