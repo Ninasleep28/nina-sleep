@@ -627,8 +627,8 @@ app.post("/start-free", async (req, res) => {
   }
 });
 
-// Track pending cancellations
-const pendingCancellations = new Set();
+// Track cancellation flow stages: "awaiting_reason" | "awaiting_final_confirm"
+const pendingCancellations = new Map();
 
 async function cancelSubscription(phone) {
   // Find user by whatsapp number
@@ -661,10 +661,23 @@ app.post("/webhook", async (req, res) => {
     try {
       const msgLower = incomingMsg.toLowerCase();
 
-      // Handle cancellation confirmation
-      if (pendingCancellations.has(from)) {
-        pendingCancellations.delete(from);
-        if (msgLower === "כן" || msgLower === "כן, בטל" || msgLower === "כן בטל") {
+      // Handle cancellation flow
+      const cancelStage = pendingCancellations.get(from);
+
+      if (cancelStage === "awaiting_reason") {
+        // Step 2 — user explained what didn't work, send to Claude for a personalized retention offer
+        // Then move to step 3
+        const retentionPrompt = `ההורה ביקש לבטל את המנוי. הסיבה שנתן: "${incomingMsg}"\nנסי להציע פתרון ספציפי וקצר לבעיה שציין. בסוף ההודעה הוסיפי:\n"אם בכל זאת רוצה לבטל — שלח/י: אשר ביטול"`;
+        const retentionReply = await askClaude(from, retentionPrompt);
+        await sendWhatsApp(from, retentionReply);
+        pendingCancellations.set(from, "awaiting_final_confirm");
+        return;
+      }
+
+      if (cancelStage === "awaiting_final_confirm") {
+        if (msgLower === "אשר ביטול") {
+          // Step 4 — confirmed, actually cancel
+          pendingCancellations.delete(from);
           try {
             await cancelSubscription(from);
             await sendWhatsApp(from, "המנוי בוטל בהצלחה. אם תרצו לחזור — תמיד אפשר 💜\nנינה כאן בשבילכם.");
@@ -674,15 +687,17 @@ app.post("/webhook", async (req, res) => {
           }
           return;
         } else {
+          // User didn't confirm — they changed their mind
+          pendingCancellations.delete(from);
           await sendWhatsApp(from, "שמחה שנשארים! 💜 אני כאן בשבילכם.");
           return;
         }
       }
 
-      // Detect cancellation request
-      if (msgLower.includes("ביטול") || msgLower.includes("לבטל") || msgLower.includes("בטל מנוי")) {
-        pendingCancellations.add(from);
-        await sendWhatsApp(from, "חבל שאתם עוזבים 😔\n\nלפני שמבטלים — אם יש משהו שלא עבד, אשמח לשמוע ולנסות לעזור.\n\nאם בכל זאת רוצים לבטל, שלחו: כן, בטל");
+      // Step 1 — Detect cancellation request
+      if (msgLower.includes("ביטול") || msgLower.includes("לבטל") || msgLower.includes("רוצה לבטל") || msgLower.includes("בטל מנוי")) {
+        pendingCancellations.set(from, "awaiting_reason");
+        await sendWhatsApp(from, "מצטערת לשמוע 😔 לפני שנמשיך — האם תוכל/י לספר לי מה לא עבד? אשמח לנסות לעזור.");
         return;
       }
 
