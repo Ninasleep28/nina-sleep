@@ -613,8 +613,15 @@ app.post("/webhook", async (req, res) => {
         return;
       }
 
-      // Check if user is premium
+      // Check if user exists and is premium
       const { data: user } = await supabase.from("users").select("is_premium, free_messages_count, plan_started").eq("whatsapp_number", from).single();
+
+      // User not registered on the website
+      if (!user) {
+        await sendWhatsApp(from, "היי! 🌙 אני נינה, יועצת השינה של התינוק שלך. כדי להתחיל את המסע יחד, אנא הירשם קודם באתר: https://ninababysleep.com ✨");
+        return;
+      }
+
       const isPremium = user?.is_premium === true;
       const planStarted = user?.plan_started === true;
       const freeCount = user?.free_messages_count || 0;
