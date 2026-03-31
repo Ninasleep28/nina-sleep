@@ -62,13 +62,18 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 שלחי הודעת וולקאם חמה, ואז שאלי בלוק אחד של שאלות בכל פעם — המתיני לתשובה לפני שממשיכים לבלוק הבא. השאלות תמיד ספציפיות וכמותיות.
 
 בלוק 0 — היכרות אישית (תמיד ראשון!):
-מה שמך? ואתה אבא או אמא? 😊
+שאלה 1: מה שמך? ואתה אבא או אמא? 😊
 --- המתיני לתשובה ---
 אחרי שקיבלת תשובה: השתמשי בכלי save_parent_info כדי לשמור את השם ואת המגדר (male/female).
-מהבלוק הבא ואילך — פני להורה בשמו/ה ובלשון המתאימה (זכר או נקבה) בכל הודעה.
+
+שאלה 2: ומה שם התינוק/ת? ובן או בת? 👶
+--- המתיני לתשובה ---
+אחרי שקיבלת תשובה: השתמשי בכלי save_baby_info כדי לשמור את שם התינוק ואת המגדר (male/female).
+
+מהבלוק הבא ואילך — פני להורה בשמו/ה ובלשון המתאימה, והשתמשי בשם התינוק/ת עם לשון מתאימה (זכר/נקבה) בכל הודעה.
 
 בלוק 1 — הרדמה:
-מה שם התינוק/תינוקת וגילו/ה בחודשים?
+מה גילו/ה של BABY_NAME בחודשים?
 ---
 איך נרדם/ת כרגע בדיוק? (הנקה, בקבוק, נדנוד בעמידה, הליכה, ליד הורה במיטה, לבד?) וכמה דקות זה לוקח בערך?
 
@@ -186,6 +191,17 @@ const SCHEDULE_TOOLS = [{
     required: ["parent_name", "parent_gender"]
   }
 }, {
+  name: "save_baby_info",
+  description: "Save the baby's name and gender after the introductory question. Call this as soon as the parent answers the baby name/gender question.",
+  input_schema: {
+    type: "object",
+    properties: {
+      baby_name: { type: "string", description: "The baby's name" },
+      baby_gender: { type: "string", enum: ["male", "female"], description: "The baby's gender: 'male' for בן, 'female' for בת" }
+    },
+    required: ["baby_name", "baby_gender"]
+  }
+}, {
   name: "save_schedule",
   description: "Save or update the baby's sleep schedule to enable automated notifications. Call this after sending the 7-day plan, or when the parent reports a schedule change.",
   input_schema: {
@@ -297,14 +313,23 @@ async function askClaude(phone, userMessage) {
   const history = await loadHistory(phone);
   history.push({ role: "user", content: userMessage });
 
-  // Fetch parent info for personalized responses
-  const { data: parentData } = await supabase.from("users").select("parent_name, parent_gender").eq("whatsapp_number", phone).single();
+  // Fetch parent and baby info for personalized responses
+  const { data: userData } = await supabase.from("users").select("parent_name, parent_gender, baby_name, baby_gender").eq("whatsapp_number", phone).single();
   let systemPrompt = SYSTEM_PROMPT;
-  if (parentData?.parent_name) {
-    const genderNote = parentData.parent_gender === "male"
-      ? `שם ההורה: ${parentData.parent_name} (אבא). דברי אליו בלשון זכר.`
-      : `שם ההורה: ${parentData.parent_name} (אמא). דברי אליה בלשון נקבה.`;
-    systemPrompt += `\n\n--- מידע אישי על ההורה ---\n${genderNote}\nהשתמשי בשם שלו/ה בהודעות באופן טבעי.`;
+  if (userData?.parent_name || userData?.baby_name) {
+    let personalInfo = "\n\n--- מידע אישי ---";
+    if (userData.parent_name) {
+      personalInfo += userData.parent_gender === "male"
+        ? `\nשם ההורה: ${userData.parent_name} (אבא). דברי אליו בלשון זכר.`
+        : `\nשם ההורה: ${userData.parent_name} (אמא). דברי אליה בלשון נקבה.`;
+    }
+    if (userData.baby_name) {
+      personalInfo += userData.baby_gender === "male"
+        ? `\nשם התינוק: ${userData.baby_name} (בן). דברי עליו בלשון זכר — "נרדם", "קם", "אוכל".`
+        : `\nשם התינוקת: ${userData.baby_name} (בת). דברי עליה בלשון נקבה — "נרדמה", "קמה", "אוכלת".`;
+    }
+    personalInfo += "\nהשתמשי בשמות באופן טבעי בכל הודעה.";
+    systemPrompt += personalInfo;
   }
 
   const claudeParams = { model: "claude-opus-4-6", max_tokens: 1024, system: systemPrompt, messages: history, tools: SCHEDULE_TOOLS };
@@ -328,6 +353,16 @@ async function askClaude(phone, userMessage) {
         toolResult = "Parent info saved successfully";
       } catch (err) {
         toolResult = `Error saving parent info: ${err.message}`;
+      }
+    } else if (toolUse.name === "save_baby_info") {
+      try {
+        await supabase.from("users").update({
+          baby_name: toolUse.input.baby_name,
+          baby_gender: toolUse.input.baby_gender
+        }).eq("whatsapp_number", phone);
+        toolResult = "Baby info saved successfully";
+      } catch (err) {
+        toolResult = `Error saving baby info: ${err.message}`;
       }
     } else if (toolUse.name === "save_schedule") {
       try {
