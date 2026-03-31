@@ -618,7 +618,7 @@ app.post("/webhook", async (req, res) => {
 
       // User not registered on the website
       if (!user) {
-        await sendWhatsApp(from, "היי! 🌙 אני נינה, יועצת השינה של התינוק שלך. כדי להתחיל את המסע יחד, אנא הירשם קודם באתר: https://ninababysleep.com ✨");
+        await sendWhatsApp(from, "היי! 🌙 אני נינה, יועצת השינה של התינוק שלך. כדי להתחיל את המסע יחד, אנא הירשם/י קודם באתר: https://ninababysleep.com ✨");
         return;
       }
 
