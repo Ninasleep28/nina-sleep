@@ -282,7 +282,7 @@ function phoneVariants(raw) {
 async function findUserByPhone(phone) {
   const variants = phoneVariants(phone);
   const { data: user } = await supabase.from("users")
-    .select("is_premium, free_messages_count, plan_started")
+    .select("is_premium")
     .in("whatsapp_number", variants)
     .limit(1)
     .single();
@@ -293,7 +293,6 @@ async function saveUser(userId, email, isPremium = false, whatsappNumber = null)
   const { error } = await supabase.from("users").upsert(
     {
       id: userId, email, is_premium: isPremium,
-      free_messages_count: 0,
       created_at: new Date().toISOString(),
       ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
     },
@@ -353,24 +352,7 @@ async function askClaude(phone, userMessage) {
   const history = await loadHistory(phone);
   history.push({ role: "user", content: userMessage });
 
-  // Fetch parent and baby info for personalized responses
-  const { data: userData } = await supabase.from("users").select("parent_name, parent_gender, baby_name, baby_gender").eq("whatsapp_number", phone).single();
   let systemPrompt = SYSTEM_PROMPT;
-  if (userData?.parent_name || userData?.baby_name) {
-    let personalInfo = "\n\n--- מידע אישי ---";
-    if (userData.parent_name) {
-      personalInfo += userData.parent_gender === "male"
-        ? `\nשם ההורה: ${userData.parent_name} (אבא). דברי אליו בלשון זכר.`
-        : `\nשם ההורה: ${userData.parent_name} (אמא). דברי אליה בלשון נקבה.`;
-    }
-    if (userData.baby_name) {
-      personalInfo += userData.baby_gender === "male"
-        ? `\nשם התינוק: ${userData.baby_name} (בן). דברי עליו בלשון זכר — "נרדם", "קם", "אוכל".`
-        : `\nשם התינוקת: ${userData.baby_name} (בת). דברי עליה בלשון נקבה — "נרדמה", "קמה", "אוכלת".`;
-    }
-    personalInfo += "\nהשתמשי בשמות באופן טבעי בכל הודעה.";
-    systemPrompt += personalInfo;
-  }
 
   const claudeParams = { model: "claude-opus-4-6", max_tokens: 1024, system: systemPrompt, messages: history, tools: SCHEDULE_TOOLS };
 
@@ -386,21 +368,15 @@ async function askClaude(phone, userMessage) {
 
     if (toolUse.name === "save_parent_info") {
       try {
-        await supabase.from("users").update({
-          parent_name: toolUse.input.parent_name,
-          parent_gender: toolUse.input.parent_gender
-        }).eq("whatsapp_number", phone);
-        toolResult = "Parent info saved successfully";
+        // parent_name and parent_gender not stored in users table
+        toolResult = "Parent info noted successfully";
       } catch (err) {
         toolResult = `Error saving parent info: ${err.message}`;
       }
     } else if (toolUse.name === "save_baby_info") {
       try {
-        await supabase.from("users").update({
-          baby_name: toolUse.input.baby_name,
-          baby_gender: toolUse.input.baby_gender
-        }).eq("whatsapp_number", phone);
-        toolResult = "Baby info saved successfully";
+        // baby_name and baby_gender not stored in users table
+        toolResult = "Baby info noted successfully";
       } catch (err) {
         toolResult = `Error saving baby info: ${err.message}`;
       }
@@ -539,7 +515,6 @@ app.post("/save-user", async (req, res) => {
     if (existingUser) {
       id = existingUser.id;
       const { error } = await supabase.from("users").update({
-        ...(fullname && { name: fullname }),
         ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
       }).eq("id", id);
       if (error) throw error;
@@ -547,9 +522,7 @@ app.post("/save-user", async (req, res) => {
       id = userId || crypto.randomUUID();
       const { error } = await supabase.from("users").insert({
         id, email, is_premium: false,
-        free_messages_count: 0,
         created_at: new Date().toISOString(),
-        ...(fullname && { name: fullname }),
         ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
       });
       if (error) throw error;
@@ -619,9 +592,7 @@ app.post("/verify-code", async (req, res) => {
     const userData = {
       email,
       is_premium: false,
-      free_messages_count: 0,
       created_at: new Date().toISOString(),
-      ...(fullname && { name: fullname }),
       ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
     };
     console.log("[verify-code] Attempting to save user:", JSON.stringify(userData));
@@ -634,7 +605,7 @@ app.post("/verify-code", async (req, res) => {
       // Update existing user
       userId = existingUser.id;
       const { error: updateError } = await supabase.from("users")
-        .update(userData)
+        .update({ ...(whatsappNumber && { whatsapp_number: whatsappNumber }) })
         .eq("id", userId);
       if (updateError) {
         console.error("[verify-code] Error updating existing user:", updateError);
@@ -721,7 +692,6 @@ app.post("/start-free", async (req, res) => {
         id: crypto.randomUUID(),
         whatsapp_number: whatsappNumber,
         is_premium: false,
-        free_messages_count: 0,
         created_at: new Date().toISOString(),
       });
     }
@@ -817,30 +787,9 @@ app.post("/webhook", async (req, res) => {
       }
 
       const isPremium = user?.is_premium === true;
-      const planStarted = user?.plan_started === true;
-      const freeCount = user?.free_messages_count || 0;
-
-      // If not premium and plan was sent, count messages
-      if (!isPremium && planStarted && freeCount >= FREE_MESSAGE_LIMIT) {
-        await sendWhatsApp(from, PAYMENT_LINK_MSG);
-        return;
-      }
 
       const reply = await askClaude(from, incomingMsg);
       await sendWhatsApp(from, reply);
-
-      // Increment free message count for non-premium users after plan started
-      if (!isPremium && planStarted) {
-        await supabase.from("users").update({ free_messages_count: freeCount + 1 }).eq("whatsapp_number", from);
-      }
-
-      // Detect if plan was just sent by checking if schedule exists now
-      if (!isPremium && !planStarted) {
-        const { data: schedule } = await supabase.from("schedules").select("phone_number").eq("phone_number", from).single();
-        if (schedule) {
-          await supabase.from("users").update({ plan_started: true }).eq("whatsapp_number", from);
-        }
-      }
     } catch (err) {
       console.error("Error:", err);
       try { await sendWhatsApp(from, "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"); }
