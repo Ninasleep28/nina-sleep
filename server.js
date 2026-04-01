@@ -533,17 +533,31 @@ app.post("/save-user", async (req, res) => {
   const { userId, email, fullname, whatsappNumber } = req.body;
   if (!email) return res.status(400).json({ message: "Missing email" });
   try {
-    const id = userId || crypto.randomUUID();
-    const { error } = await supabase.from("users").upsert({
-      id, email, is_premium: false,
-      free_messages_count: 0,
-      created_at: new Date().toISOString(),
-      ...(fullname && { name: fullname }),
-      ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
-    }, { onConflict: "id" });
-    if (error) throw error;
+    const { data: existingUser } = await supabase.from("users").select("id").eq("email", email).single();
+    let id;
+
+    if (existingUser) {
+      id = existingUser.id;
+      const { error } = await supabase.from("users").update({
+        ...(fullname && { name: fullname }),
+        ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
+      }).eq("id", id);
+      if (error) throw error;
+    } else {
+      id = userId || crypto.randomUUID();
+      const { error } = await supabase.from("users").insert({
+        id, email, is_premium: false,
+        free_messages_count: 0,
+        created_at: new Date().toISOString(),
+        ...(fullname && { name: fullname }),
+        ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
+      });
+      if (error) throw error;
+    }
+
     res.json({ ok: true, userId: id });
   } catch (error) {
+    console.error("[save-user] Error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -602,20 +616,41 @@ app.post("/verify-code", async (req, res) => {
     await supabase.from("verification_codes").delete().eq("email", email);
 
     // Save user to DB right after successful verification
-    const userId = crypto.randomUUID();
-    const { error: saveError } = await supabase.from("users").upsert({
-      id: userId,
+    const userData = {
       email,
       is_premium: false,
       free_messages_count: 0,
       created_at: new Date().toISOString(),
       ...(fullname && { name: fullname }),
       ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
-    }, { onConflict: "email" });
-    if (saveError) {
-      console.error("Error saving user after verification:", saveError);
+    };
+    console.log("[verify-code] Attempting to save user:", JSON.stringify(userData));
+
+    // Check if user already exists by email
+    const { data: existingUser } = await supabase.from("users").select("id").eq("email", email).single();
+    let userId;
+
+    if (existingUser) {
+      // Update existing user
+      userId = existingUser.id;
+      const { error: updateError } = await supabase.from("users")
+        .update(userData)
+        .eq("id", userId);
+      if (updateError) {
+        console.error("[verify-code] Error updating existing user:", updateError);
+      } else {
+        console.log(`[verify-code] User updated: ${email}, id: ${userId}`);
+      }
     } else {
-      console.log(`User saved after verification: ${email}, whatsapp: ${whatsappNumber}`);
+      // Insert new user
+      userId = crypto.randomUUID();
+      const { error: insertError } = await supabase.from("users")
+        .insert({ id: userId, ...userData });
+      if (insertError) {
+        console.error("[verify-code] Error inserting new user:", insertError);
+      } else {
+        console.log(`[verify-code] New user created: ${email}, id: ${userId}, whatsapp: ${whatsappNumber}`);
+      }
     }
 
     res.json({ ok: true, userId });
