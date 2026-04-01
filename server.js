@@ -619,6 +619,15 @@ app.post("/start-free", async (req, res) => {
   const { whatsappNumber } = req.body;
   if (!whatsappNumber) return res.status(400).json({ message: "Missing whatsappNumber" });
   try {
+    // Ensure user exists in DB so the webhook can find them by whatsapp_number
+    const { data: existing } = await supabase.from("users").select("id").eq("whatsapp_number", whatsappNumber).single();
+    if (!existing) {
+      await supabase.from("users").insert({
+        id: crypto.randomUUID(),
+        whatsapp_number: whatsappNumber,
+        is_premium: false,
+      });
+    }
     await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק/תינוקת וגילו/ה בחודשים?`);
     res.json({ ok: true });
   } catch (error) {
