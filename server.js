@@ -254,6 +254,41 @@ async function saveHistory(phone, messages) {
   if (error) throw error;
 }
 
+function phoneVariants(raw) {
+  // Strip "whatsapp:" prefix if present
+  const stripped = raw.replace(/^whatsapp:/, "");
+  const digits = stripped.replace(/[^\d]/g, "");
+  const variants = new Set();
+  variants.add(raw);
+  variants.add(stripped);
+  // +972XXXXXXXXX
+  if (digits.startsWith("972")) {
+    variants.add("whatsapp:+" + digits);
+    variants.add("+" + digits);
+    variants.add(digits);
+    variants.add("0" + digits.slice(3));
+  }
+  // 0XXXXXXXXX (local Israeli format)
+  if (digits.startsWith("0")) {
+    const intl = "972" + digits.slice(1);
+    variants.add("whatsapp:+" + intl);
+    variants.add("+" + intl);
+    variants.add(intl);
+    variants.add(digits);
+  }
+  return [...variants];
+}
+
+async function findUserByPhone(phone) {
+  const variants = phoneVariants(phone);
+  const { data: user } = await supabase.from("users")
+    .select("is_premium, free_messages_count, plan_started")
+    .in("whatsapp_number", variants)
+    .limit(1)
+    .single();
+  return user;
+}
+
 async function saveUser(userId, email, isPremium = false, whatsappNumber = null) {
   const { error } = await supabase.from("users").upsert(
     {
@@ -719,8 +754,8 @@ app.post("/webhook", async (req, res) => {
         return;
       }
 
-      // Check if user exists and is premium
-      const { data: user } = await supabase.from("users").select("is_premium, free_messages_count, plan_started").eq("whatsapp_number", from).single();
+      // Check if user exists and is premium (try all phone format variants)
+      const user = await findUserByPhone(from);
 
       // User not registered on the website
       if (!user) {
