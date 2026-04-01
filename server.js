@@ -256,7 +256,12 @@ async function saveHistory(phone, messages) {
 
 async function saveUser(userId, email, isPremium = false, whatsappNumber = null) {
   const { error } = await supabase.from("users").upsert(
-    { id: userId, email, is_premium: isPremium, ...(whatsappNumber && { whatsapp_number: whatsappNumber }) },
+    {
+      id: userId, email, is_premium: isPremium,
+      free_messages_count: 0,
+      created_at: new Date().toISOString(),
+      ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
+    },
     { onConflict: "id" }
   );
   if (error) { console.error("Error saving user:", error); throw error; }
@@ -496,7 +501,9 @@ app.post("/save-user", async (req, res) => {
     const id = userId || crypto.randomUUID();
     const { error } = await supabase.from("users").upsert({
       id, email, is_premium: false,
-      ...(fullname && { full_name: fullname }),
+      free_messages_count: 0,
+      created_at: new Date().toISOString(),
+      ...(fullname && { name: fullname }),
       ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
     }, { onConflict: "id" });
     if (error) throw error;
@@ -626,6 +633,8 @@ app.post("/start-free", async (req, res) => {
         id: crypto.randomUUID(),
         whatsapp_number: whatsappNumber,
         is_premium: false,
+        free_messages_count: 0,
+        created_at: new Date().toISOString(),
       });
     }
     await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שם התינוק/תינוקת וגילו/ה בחודשים?`);
