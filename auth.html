@@ -165,7 +165,12 @@
       const res = await fetch('/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: pendingEmail, code })
+        body: JSON.stringify({
+          email: pendingEmail,
+          code,
+          fullname: localStorage.getItem('nina_fullname'),
+          whatsappNumber: localStorage.getItem('nina_whatsapp')
+        })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -174,17 +179,6 @@
         btn.textContent = 'אימות והמשך לשאלון ←';
         return;
       }
-
-      // Verified — save user and redirect
-      await fetch('/save-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullname: localStorage.getItem('nina_fullname'),
-          email: pendingEmail,
-          whatsappNumber: localStorage.getItem('nina_whatsapp')
-        })
-      });
 
       window.location.href = '/quiz.html';
     } catch (err) {

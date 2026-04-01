@@ -583,7 +583,7 @@ app.post("/send-verification", async (req, res) => {
 });
 
 app.post("/verify-code", async (req, res) => {
-  const { email, code } = req.body;
+  const { email, code, fullname, whatsappNumber } = req.body;
   if (!email || !code) return res.status(400).json({ message: "Missing email or code" });
   try {
     const { data, error } = await supabase
@@ -600,7 +600,25 @@ app.post("/verify-code", async (req, res) => {
 
     // Clean up used code
     await supabase.from("verification_codes").delete().eq("email", email);
-    res.json({ ok: true });
+
+    // Save user to DB right after successful verification
+    const userId = crypto.randomUUID();
+    const { error: saveError } = await supabase.from("users").upsert({
+      id: userId,
+      email,
+      is_premium: false,
+      free_messages_count: 0,
+      created_at: new Date().toISOString(),
+      ...(fullname && { name: fullname }),
+      ...(whatsappNumber && { whatsapp_number: whatsappNumber }),
+    }, { onConflict: "email" });
+    if (saveError) {
+      console.error("Error saving user after verification:", saveError);
+    } else {
+      console.log(`User saved after verification: ${email}, whatsapp: ${whatsappNumber}`);
+    }
+
+    res.json({ ok: true, userId });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
