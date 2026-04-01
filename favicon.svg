@@ -1,0 +1,59 @@
+<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="cc"><circle cx="250" cy="250" r="220"/></clipPath>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="250" cy="250" r="250" fill="#1a1640"/>
+  <circle cx="250" cy="250" r="220" fill="#1a1640"/>
+  <circle cx="250" cy="250" r="220" fill="none" stroke="#3d3678" stroke-width="2.5"/>
+  <circle cx="250" cy="250" r="212" fill="none" stroke="#2e2960" stroke-width="1"/>
+
+  <!-- Stars -->
+  <circle cx="175" cy="125" r="2" fill="#f0d898"/>
+  <circle cx="218" cy="100" r="1.4" fill="#e8d4a0"/>
+  <circle cx="272" cy="113" r="2.5" fill="#f5e8b8"/>
+  <circle cx="318" cy="135" r="1.8" fill="#e8d4a0"/>
+  <circle cx="338" cy="173" r="1.2" fill="#d4c28a"/>
+  <circle cx="160" cy="173" r="1.4" fill="#d4c28a"/>
+  <circle cx="200" cy="153" r="1" fill="#c8b880"/>
+  <circle cx="295" cy="105" r="1.2" fill="#c8b880"/>
+  <circle cx="350" cy="210" r="1.6" fill="#e0ce94"/>
+  <circle cx="148" cy="210" r="1.3" fill="#d4c28a"/>
+
+  <!-- Sparkles -->
+  <polygon points="238,95 240,105 250,107 240,109 238,119 236,109 226,107 236,105" fill="#f5e8c0" opacity="0.9" transform="scale(0.65) translate(130,15)"/>
+  <polygon points="238,95 240,105 250,107 240,109 238,119 236,109 226,107 236,105" fill="#f5e8c0" opacity="0.9" transform="scale(0.48) translate(440,85)"/>
+
+  <!-- Crescent moon -->
+  <g clip-path="url(#cc)">
+    <circle cx="225" cy="200" r="105" fill="#f5e8c0"/>
+    <circle cx="273" cy="183" r="91" fill="#1a1640"/>
+  </g>
+  <circle cx="225" cy="200" r="105" fill="none" stroke="#e8d898" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Moon texture -->
+  <circle cx="182" cy="218" r="4" fill="#e8d88a" opacity="0.22"/>
+  <circle cx="174" cy="244" r="3" fill="#e0cc7a" opacity="0.18"/>
+
+  <!-- NINA -->
+  <text x="250" y="362"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="68"
+    font-weight="400"
+    fill="#f5e8c0"
+    letter-spacing="14">NINA</text>
+
+  <!-- Hebrew tagline -->
+  <text x="250" y="400"
+    text-anchor="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="20"
+    font-weight="400"
+    fill="#9d92cc"
+    letter-spacing="1">יועצת השינה לתינוקות</text>
+
+  <!-- Outer dashed ring -->
+  <circle cx="250" cy="250" r="226" fill="none" stroke="#3a3468" stroke-width="1.2" stroke-dasharray="4 7" opacity="0.6"/>
+</svg>
