@@ -906,9 +906,23 @@ app.post("/webhook", async (req, res) => {
 
 // Temporary debug endpoint — remove after fixing phone format issue
 app.get("/debug-users", async (req, res) => {
-  const { data, error } = await supabase.from("users").select("id, email, whatsapp_number, is_premium").limit(10);
-  if (error) return res.status(500).json({ error });
-  res.json(data);
+  // Test 1: basic select
+  const { data, error } = await supabase.from("users").select("*").limit(10);
+  // Test 2: .in() with the exact value from DB
+  const { data: inResult, error: inError } = await supabase.from("users")
+    .select("id, whatsapp_number")
+    .in("whatsapp_number", ["whatsapp:+972524717277"])
+    .limit(1);
+  // Test 3: .eq() with the exact value
+  const { data: eqResult, error: eqError } = await supabase.from("users")
+    .select("id, whatsapp_number")
+    .eq("whatsapp_number", "whatsapp:+972524717277")
+    .limit(1);
+  res.json({
+    allUsers: { data, error },
+    inTest: { data: inResult, error: inError },
+    eqTest: { data: eqResult, error: eqError }
+  });
 });
 
 app.post("/reset/:phone", async (req, res) => {
