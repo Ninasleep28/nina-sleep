@@ -28,6 +28,7 @@
     { "src": "/verify-code", "dest": "/server.js" },
     { "src": "/stripe-webhook", "dest": "/server.js" },
     { "src": "/status", "dest": "/server.js" },
+    { "src": "/debug-users", "dest": "/server.js" },
     { "src": "/reset/(.*)", "dest": "/server.js" },
     { "src": "/auth.html", "dest": "/auth.html" },
     { "src": "/quiz", "dest": "/quiz.html" },
