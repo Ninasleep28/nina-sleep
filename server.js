@@ -443,7 +443,10 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
         await saveUser(userId, email, true, whatsappNumber);
         const { data: userData } = await supabase.from("users").select("name").eq("whatsapp_number", whatsappNumber).single();
         const parentName = userData?.name || "";
-        await sendWhatsApp(whatsappNumber, `היי ${parentName}! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`.trim());
+        const welcomeMsg = `היי ${parentName}! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`.trim();
+        await sendWhatsApp(whatsappNumber, welcomeMsg);
+        // Save welcome message to conversation history so Claude remembers it
+        await saveHistory(whatsappNumber, [{ role: "assistant", content: [{ type: "text", text: welcomeMsg }] }]);
       } catch (err) { console.error("Error processing payment webhook:", err); }
     })());
   }
@@ -726,7 +729,10 @@ app.post("/start-free", async (req, res) => {
       });
     }
     const parentName = existing?.name || "";
-    await sendWhatsApp(whatsappNumber, `היי ${parentName}! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`.trim());
+    const welcomeMsg = `היי ${parentName}! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`.trim();
+    await sendWhatsApp(whatsappNumber, welcomeMsg);
+    // Save welcome message to conversation history so Claude remembers it
+    await saveHistory(whatsappNumber, [{ role: "assistant", content: [{ type: "text", text: welcomeMsg }] }]);
     res.json({ ok: true });
   } catch (error) {
     console.error("Error in /start-free:", error);
