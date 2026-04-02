@@ -278,15 +278,39 @@ function phoneVariants(raw) {
 
 async function findUserByPhone(phone) {
   const variants = phoneVariants(phone);
+  console.log(`[findUserByPhone] phone: "${phone}", variants:`, JSON.stringify(variants));
+
+  // First try .in() with all variants
   const { data: users, error } = await supabase.from("users")
-    .select("is_premium, free_messages_count, plan_started")
+    .select("is_premium, free_messages_count, plan_started, whatsapp_number")
     .in("whatsapp_number", variants)
     .limit(1);
+  console.log(`[findUserByPhone] .in() result: users=${JSON.stringify(users)}, error=${JSON.stringify(error)}`);
+
   if (error) {
-    console.error("[findUserByPhone] Error:", error);
-    return null;
+    console.error("[findUserByPhone] .in() error:", error);
   }
-  return users && users.length > 0 ? users[0] : null;
+  if (users && users.length > 0) return users[0];
+
+  // Fallback: try exact match with raw phone
+  const { data: exactUsers, error: exactError } = await supabase.from("users")
+    .select("is_premium, free_messages_count, plan_started, whatsapp_number")
+    .eq("whatsapp_number", phone)
+    .limit(1);
+  console.log(`[findUserByPhone] .eq() fallback: users=${JSON.stringify(exactUsers)}, error=${JSON.stringify(exactError)}`);
+  if (exactUsers && exactUsers.length > 0) return exactUsers[0];
+
+  // Fallback: try ilike with just digits
+  const digits = phone.replace(/[^\d]/g, "");
+  const { data: likeUsers, error: likeError } = await supabase.from("users")
+    .select("is_premium, free_messages_count, plan_started, whatsapp_number")
+    .ilike("whatsapp_number", `%${digits}%`)
+    .limit(1);
+  console.log(`[findUserByPhone] ilike fallback (digits="${digits}"): users=${JSON.stringify(likeUsers)}, error=${JSON.stringify(likeError)}`);
+  if (likeUsers && likeUsers.length > 0) return likeUsers[0];
+
+  console.log(`[findUserByPhone] No user found for phone: "${phone}"`);
+  return null;
 }
 
 async function saveUser(userId, email, isPremium = false, whatsappNumber = null) {
