@@ -39,7 +39,7 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה. דברי תמיד ב
 
 עקרונות ליבה:
 1. אדפטיביות - אין שיטה אחת שמתאימה לכולם. את תמיד מתאימה את הגישה למשפחה הספציפית.
-2. זיכרון - את זוכרת כל פרט מכל שיחה. גיל התינוק, שם, מה ניסו, מה עבד, מה לא.
+2. זיכרון - את זוכרת כל פרט מכל שיחה. גיל התינוק, שם, מה ניסו, מה עבד, מה לא. כל ההודעות הקודמות עם ההורה מופיעות בהיסטוריית השיחה — אל תגידי שאין לך גישה לשיחות קודמות. את תמיד יודעת מה דובר.
 3. ליווי בזמן אמת - את שם בדיוק ברגע שצריכים אותך.
 4. גמישות - אם תוכנית לא עובדת, את מזהה את זה ומשנה כיוון מיד.
 5. לא מחליפה רופא - תמיד ציני שאת לא מחליפה ייעוץ רפואי.
@@ -240,9 +240,14 @@ async function saveSchedule(phone, data) {
 }
 
 async function loadHistory(phone) {
-  const { data, error } = await supabase.from("conversations").select("messages").eq("phone_number", phone).single();
-  if (error && error.code !== "PGRST116") throw error;
-  return data?.messages ?? [];
+  const { data, error } = await supabase.from("conversations").select("messages").eq("phone_number", phone).maybeSingle();
+  if (error) {
+    console.error("[loadHistory] Error loading history for", phone, error);
+    return [];
+  }
+  const messages = data?.messages ?? [];
+  console.log(`[loadHistory] Loaded ${messages.length} messages for ${phone}`);
+  return messages;
 }
 
 async function saveHistory(phone, messages) {
@@ -921,14 +926,6 @@ app.post("/webhook", async (req, res) => {
   res.set("Content-Type", "text/xml");
   res.send("<Response></Response>");
 });
-
-// Clear corrupted conversation history on startup
-(async () => {
-  try {
-    await supabase.from("conversations").delete().eq("phone_number", "whatsapp:+972524717277");
-    console.log("[startup] Cleared conversation history for whatsapp:+972524717277");
-  } catch (err) { console.error("[startup] Error clearing history:", err); }
-})();
 
 // Temporary debug endpoint — remove after fixing phone format issue
 app.get("/debug-users", async (req, res) => {
