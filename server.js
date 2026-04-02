@@ -62,15 +62,15 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 שלחי הודעת וולקאם חמה, ואז שאלי בלוק אחד של שאלות בכל פעם — המתיני לתשובה לפני שממשיכים לבלוק הבא. השאלות תמיד ספציפיות וכמותיות.
 
 בלוק 0 — היכרות אישית (תמיד ראשון!):
-שאלה 1: מה שמך? ואתה אבא או אמא? 😊
+שאלה 1: ומה שמך? 😊
 --- המתיני לתשובה ---
-אחרי שקיבלת תשובה: השתמשי בכלי save_parent_info כדי לשמור את השם ואת המגדר (male/female).
+אחרי שקיבלת תשובה: השתמשי בכלי save_parent_info כדי לשמור את השם.
 
 שאלה 2: ומה שם התינוק/ת? ובן או בת? 👶
 --- המתיני לתשובה ---
 אחרי שקיבלת תשובה: השתמשי בכלי save_baby_info כדי לשמור את שם התינוק ואת המגדר (male/female).
 
-מהבלוק הבא ואילך — פני להורה בשמו/ה ובלשון המתאימה, והשתמשי בשם התינוק/ת עם לשון מתאימה (זכר/נקבה) בכל הודעה.
+מהבלוק הבא ואילך — פני להורה בשמו/ה, והשתמשי בשם התינוק/ת עם לשון מתאימה (זכר/נקבה) בכל הודעה.
 
 בלוק 1 — הרדמה:
 מה גילו/ה של BABY_NAME בחודשים?
@@ -181,14 +181,13 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 
 const SCHEDULE_TOOLS = [{
   name: "save_parent_info",
-  description: "Save the parent's name and gender after the introductory question. Call this as soon as the parent answers the name/gender question.",
+  description: "Save the parent's name after the introductory question. Call this as soon as the parent answers the name question.",
   input_schema: {
     type: "object",
     properties: {
-      parent_name: { type: "string", description: "The parent's first name" },
-      parent_gender: { type: "string", enum: ["male", "female"], description: "The parent's gender: 'male' for אבא, 'female' for אמא" }
+      parent_name: { type: "string", description: "The parent's first name" }
     },
-    required: ["parent_name", "parent_gender"]
+    required: ["parent_name"]
   }
 }, {
   name: "save_baby_info",
@@ -354,14 +353,12 @@ async function askClaude(phone, userMessage) {
   history.push({ role: "user", content: userMessage });
 
   // Fetch parent and baby info for personalized responses
-  const { data: userData } = await supabase.from("users").select("parent_name, parent_gender, baby_name, baby_gender").eq("whatsapp_number", phone).single();
+  const { data: userData } = await supabase.from("users").select("parent_name, baby_name, baby_gender").eq("whatsapp_number", phone).single();
   let systemPrompt = SYSTEM_PROMPT;
   if (userData?.parent_name || userData?.baby_name) {
     let personalInfo = "\n\n--- מידע אישי ---";
     if (userData.parent_name) {
-      personalInfo += userData.parent_gender === "male"
-        ? `\nשם ההורה: ${userData.parent_name} (אבא). דברי אליו בלשון זכר.`
-        : `\nשם ההורה: ${userData.parent_name} (אמא). דברי אליה בלשון נקבה.`;
+      personalInfo += `\nשם ההורה: ${userData.parent_name}. פני אליו/ה בשם.`;
     }
     if (userData.baby_name) {
       personalInfo += userData.baby_gender === "male"
@@ -387,8 +384,7 @@ async function askClaude(phone, userMessage) {
     if (toolUse.name === "save_parent_info") {
       try {
         await supabase.from("users").update({
-          parent_name: toolUse.input.parent_name,
-          parent_gender: toolUse.input.parent_gender
+          parent_name: toolUse.input.parent_name
         }).eq("whatsapp_number", phone);
         toolResult = "Parent info saved successfully";
       } catch (err) {
@@ -443,7 +439,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
     waitUntil((async () => {
       try {
         await saveUser(userId, email, true, whatsappNumber);
-        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: מה שמך? ואתה אבא או אמא? 😊`);
+        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nנתחיל: ומה שמך? 😊`);
       } catch (err) { console.error("Error processing payment webhook:", err); }
     })());
   }
