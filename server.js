@@ -278,12 +278,15 @@ function phoneVariants(raw) {
 
 async function findUserByPhone(phone) {
   const variants = phoneVariants(phone);
-  const { data: user } = await supabase.from("users")
+  const { data: users, error } = await supabase.from("users")
     .select("is_premium, free_messages_count, plan_started")
     .in("whatsapp_number", variants)
-    .limit(1)
-    .single();
-  return user;
+    .limit(1);
+  if (error) {
+    console.error("[findUserByPhone] Error:", error);
+    return null;
+  }
+  return users && users.length > 0 ? users[0] : null;
 }
 
 async function saveUser(userId, email, isPremium = false, whatsappNumber = null) {
@@ -758,6 +761,7 @@ async function cancelSubscription(phone) {
 app.post("/webhook", async (req, res) => {
   const incomingMsg = req.body.Body?.trim();
   const from = req.body.From;
+  console.log(`[webhook] Incoming from ${from}: "${incomingMsg}"`);
   if (!incomingMsg || !from) return res.status(400).send("Missing Body or From");
   res.set("Content-Type", "text/xml");
   res.send("<Response></Response>");
@@ -806,10 +810,13 @@ app.post("/webhook", async (req, res) => {
       }
 
       // Check if user exists and is premium (try all phone format variants)
+      console.log(`[webhook] Looking up user for ${from}...`);
       const user = await findUserByPhone(from);
+      console.log(`[webhook] User found:`, JSON.stringify(user));
 
       // User not registered on the website
       if (!user) {
+        console.log(`[webhook] User not found, sending registration message`);
         await sendWhatsApp(from, "היי! 🌙 אני נינה, יועצת השינה של התינוק שלך. כדי להתחיל את המסע יחד, אנא הירשם/י קודם באתר: https://ninababysleep.com ✨");
         return;
       }
@@ -817,6 +824,7 @@ app.post("/webhook", async (req, res) => {
       const isPremium = user?.is_premium === true;
       const planStarted = user?.plan_started === true;
       const freeCount = user?.free_messages_count || 0;
+      console.log(`[webhook] isPremium=${isPremium}, planStarted=${planStarted}, freeCount=${freeCount}`);
 
       // If not premium and plan was sent, count messages
       if (!isPremium && planStarted && freeCount >= FREE_MESSAGE_LIMIT) {
