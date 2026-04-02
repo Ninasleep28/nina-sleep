@@ -533,7 +533,7 @@ app.post("/save-user", async (req, res) => {
   const { userId, email, fullname, whatsappNumber } = req.body;
   if (!email) return res.status(400).json({ message: "Missing email" });
   try {
-    const { data: existingUser } = await supabase.from("users").select("id").eq("email", email).single();
+    const { data: existingUser } = await supabase.from("users").select("id").eq("email", email).maybeSingle();
     let id;
 
     if (existingUser) {
@@ -627,7 +627,7 @@ app.post("/verify-code", async (req, res) => {
     console.log("[verify-code] Attempting to save user:", JSON.stringify(userData));
 
     // Check if user already exists by email
-    const { data: existingUser } = await supabase.from("users").select("id").eq("email", email).single();
+    const { data: existingUser } = await supabase.from("users").select("id").eq("email", email).maybeSingle();
     let userId;
 
     if (existingUser) {
