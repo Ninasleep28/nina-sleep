@@ -438,7 +438,9 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
     waitUntil((async () => {
       try {
         await saveUser(userId, email, true, whatsappNumber);
-        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`);
+        const { data: userData } = await supabase.from("users").select("name").eq("whatsapp_number", whatsappNumber).single();
+        const parentName = userData?.name || "";
+        await sendWhatsApp(whatsappNumber, `היי ${parentName}! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`.trim());
       } catch (err) { console.error("Error processing payment webhook:", err); }
     })());
   }
@@ -710,7 +712,7 @@ app.post("/start-free", async (req, res) => {
   if (!whatsappNumber) return res.status(400).json({ message: "Missing whatsappNumber" });
   try {
     // Ensure user exists in DB so the webhook can find them by whatsapp_number
-    const { data: existing } = await supabase.from("users").select("id").eq("whatsapp_number", whatsappNumber).single();
+    const { data: existing } = await supabase.from("users").select("id, name").eq("whatsapp_number", whatsappNumber).single();
     if (!existing) {
       await supabase.from("users").insert({
         id: crypto.randomUUID(),
@@ -720,7 +722,8 @@ app.post("/start-free", async (req, res) => {
         created_at: new Date().toISOString(),
       });
     }
-    await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`);
+    const parentName = existing?.name || "";
+    await sendWhatsApp(whatsappNumber, `היי ${parentName}! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`.trim());
     res.json({ ok: true });
   } catch (error) {
     console.error("Error in /start-free:", error);
