@@ -771,7 +771,9 @@ app.post("/webhook", async (req, res) => {
   if (!incomingMsg || !from) return res.status(400).send("Missing Body or From");
   res.set("Content-Type", "text/xml");
   res.send("<Response></Response>");
-  waitUntil((async () => {
+  console.log(`[webhook] Response sent, starting waitUntil...`);
+  const bgTask = (async () => {
+    console.log(`[webhook] Inside async task, processing message...`);
     try {
       const msgLower = incomingMsg.toLowerCase();
 
@@ -864,11 +866,18 @@ app.post("/webhook", async (req, res) => {
         await sendWhatsApp(from, "כדי להמשיך את הליווי — ninababysleep.com/payment.html — 249₪ לחודש 💜");
       }
     } catch (err) {
-      console.error("Error:", err);
+      console.error("[webhook] Error in main flow:", err?.message || err, JSON.stringify(err));
       try { await sendWhatsApp(from, "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"); }
-      catch (e) {}
+      catch (sendErr) { console.error("[webhook] Error sending error message:", sendErr?.message || sendErr); }
     }
-  })());
+    console.log(`[webhook] Async task finished for ${from}`);
+  })();
+  try {
+    waitUntil(bgTask);
+    console.log(`[webhook] waitUntil registered successfully`);
+  } catch (wuErr) {
+    console.error("[webhook] waitUntil failed:", wuErr?.message || wuErr);
+  }
 });
 
 app.post("/reset/:phone", async (req, res) => {
