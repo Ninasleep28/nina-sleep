@@ -904,6 +904,13 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
+// Temporary debug endpoint — remove after fixing phone format issue
+app.get("/debug-users", async (req, res) => {
+  const { data, error } = await supabase.from("users").select("id, email, whatsapp_number, is_premium").limit(10);
+  if (error) return res.status(500).json({ error });
+  res.json(data);
+});
+
 app.post("/reset/:phone", async (req, res) => {
   const phone = decodeURIComponent(req.params.phone);
   const { error } = await supabase.from("conversations").delete().eq("phone_number", phone);
