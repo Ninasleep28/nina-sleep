@@ -61,18 +61,15 @@ const SYSTEM_PROMPT = `את נינה - יועצת שינה AI מקצועית ל�
 פרוטוקול היכרות - מיד אחרי תשלום:
 שלחי הודעת וולקאם חמה, ואז שאלי בלוק אחד של שאלות בכל פעם — המתיני לתשובה לפני שממשיכים לבלוק הבא. השאלות תמיד ספציפיות וכמותיות.
 
-בלוק 0 — היכרות אישית (תמיד ראשון!):
-חשוב: בלוק זה חייב להסתיים לפני שעוברים לבלוק 1. אל תמשיכי לשאלות על שינה לפני שיש לך את שם ההורה ואת שם התינוק/ת.
+בלוק 0 — היכרות עם התינוק (תמיד ראשון!):
+שם ההורה כבר ידוע לך מהמידע האישי למטה — פני אליו/ה בשם מההודעה הראשונה.
+חשוב: בלוק זה חייב להסתיים לפני שעוברים לבלוק 1.
 
-שאלה 1 (תמיד ראשונה): לפני שנצלול לתוכנית, בוא נכיר קצת — מה שמך? 😊
---- המתיני לתשובה ---
-אחרי שקיבלת תשובה: השתמשי בכלי save_parent_info כדי לשמור את שם ההורה בעמודת parent_name. רק אחרי ששמרת — עברי לשאלה 2.
-
-שאלה 2 (רק אחרי שקיבלת שם הורה): ומה שם התינוק/ת שלך, בן או בת, ובן כמה הוא/היא? 👶
+שאלה 1 (תמיד ראשונה): בוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶
 --- המתיני לתשובה ---
 אחרי שקיבלת תשובה: השתמשי בכלי save_baby_info כדי לשמור את שם התינוק בעמודת baby_name ואת המגדר בעמודת baby_gender (male/female). שימי לב גם לגיל שציין ההורה.
 
-רק אחרי ששני השמות נשמרו — המשיכי לבלוק 1. פני להורה בשמו/ה, והשתמשי בשם התינוק/ת עם לשון מתאימה (זכר/נקבה) בכל הודעה.
+רק אחרי ששם התינוק נשמר — המשיכי לבלוק 1. השתמשי בשם התינוק/ת עם לשון מתאימה (זכר/נקבה) בכל הודעה.
 
 בלוק 1 — הרדמה:
 ---
@@ -354,12 +351,13 @@ async function askClaude(phone, userMessage) {
   history.push({ role: "user", content: userMessage });
 
   // Fetch parent and baby info for personalized responses
-  const { data: userData } = await supabase.from("users").select("parent_name, baby_name, baby_gender").eq("whatsapp_number", phone).single();
+  const { data: userData } = await supabase.from("users").select("name, parent_name, baby_name, baby_gender").eq("whatsapp_number", phone).single();
   let systemPrompt = SYSTEM_PROMPT;
-  if (userData?.parent_name || userData?.baby_name) {
+  if (userData?.name || userData?.parent_name || userData?.baby_name) {
     let personalInfo = "\n\n--- מידע אישי ---";
-    if (userData.parent_name) {
-      personalInfo += `\nשם ההורה: ${userData.parent_name}. פני אליו/ה בשם.`;
+    const parentName = userData.name || userData.parent_name;
+    if (parentName) {
+      personalInfo += `\nשם ההורה: ${parentName}. פני אליו/ה בשם.`;
     }
     if (userData.baby_name) {
       personalInfo += userData.baby_gender === "male"
@@ -440,7 +438,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
     waitUntil((async () => {
       try {
         await saveUser(userId, email, true, whatsappNumber);
-        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nלפני שנצלול לתוכנית, בוא נכיר קצת — מה שמך? 😊`);
+        await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`);
       } catch (err) { console.error("Error processing payment webhook:", err); }
     })());
   }
@@ -722,7 +720,7 @@ app.post("/start-free", async (req, res) => {
         created_at: new Date().toISOString(),
       });
     }
-    await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nלפני שנצלול לתוכנית, בוא נכיר קצת — מה שמך? 😊`);
+    await sendWhatsApp(whatsappNumber, `היי! 🌙 אני נינה, יועצת השינה שלך.\n\nאני כאן 24/7 - כולל 3 לפנות בוקר כשהכל מרגיש בלתי אפשרי.\n\nלפני שנתחיל, אני רוצה להכיר אתכם קצת יותר לעומק.\nיש לי כמה שאלות - קחו את הזמן לענות, אין מהר 💜\n\nבוא נכיר קצת — מה שם התינוק/ת שלך, בן או בת, ובן כמה? 👶`);
     res.json({ ok: true });
   } catch (error) {
     console.error("Error in /start-free:", error);
