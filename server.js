@@ -373,8 +373,34 @@ async function callClaudeWithRetry(params, retries = 3) {
   }
 }
 
+function sanitizeHistory(messages) {
+  // Collect all tool_use IDs from assistant messages
+  const toolUseIds = new Set();
+  for (const msg of messages) {
+    if (msg.role === "assistant" && Array.isArray(msg.content)) {
+      for (const block of msg.content) {
+        if (block.type === "tool_use" && block.id) toolUseIds.add(block.id);
+      }
+    }
+  }
+  // Filter out user messages that contain orphan tool_result blocks
+  return messages.filter((msg) => {
+    if (msg.role === "user" && Array.isArray(msg.content)) {
+      const hasOrphan = msg.content.some(
+        (block) => block.type === "tool_result" && !toolUseIds.has(block.tool_use_id)
+      );
+      if (hasOrphan) {
+        console.log(`[sanitizeHistory] Removing orphan tool_result message`);
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
 async function askClaude(phone, userMessage) {
-  const history = await loadHistory(phone);
+  const rawHistory = await loadHistory(phone);
+  const history = sanitizeHistory(rawHistory);
   history.push({ role: "user", content: userMessage });
 
   // Fetch parent and baby info for personalized responses
@@ -894,6 +920,14 @@ app.post("/webhook", async (req, res) => {
   res.set("Content-Type", "text/xml");
   res.send("<Response></Response>");
 });
+
+// Clear corrupted conversation history on startup
+(async () => {
+  try {
+    await supabase.from("conversations").delete().eq("phone_number", "whatsapp:+972524717277");
+    console.log("[startup] Cleared conversation history for whatsapp:+972524717277");
+  } catch (err) { console.error("[startup] Error clearing history:", err); }
+})();
 
 // Temporary debug endpoint — remove after fixing phone format issue
 app.get("/debug-users", async (req, res) => {
