@@ -793,13 +793,9 @@ app.post("/webhook", async (req, res) => {
   const from = req.body.From;
   console.log(`[webhook] Incoming from ${from}: "${incomingMsg}"`);
   if (!incomingMsg || !from) return res.status(400).send("Missing Body or From");
-  res.set("Content-Type", "text/xml");
-  res.send("<Response></Response>");
-  console.log(`[webhook] Response sent, starting waitUntil...`);
-  const bgTask = (async () => {
-    console.log(`[webhook] Inside async task, processing message...`);
-    try {
-      const msgLower = incomingMsg.toLowerCase();
+
+  try {
+    const msgLower = incomingMsg.toLowerCase();
 
       // Handle cancellation flow
       const cancelStage = pendingCancellations.get(from);
@@ -889,19 +885,14 @@ app.post("/webhook", async (req, res) => {
         await supabase.from("users").update({ plan_started: true, free_messages_count: 0 }).eq("whatsapp_number", from);
         await sendWhatsApp(from, "כדי להמשיך את הליווי — ninababysleep.com/payment.html — 249₪ לחודש 💜");
       }
-    } catch (err) {
-      console.error("[webhook] Error in main flow:", err?.message || err, JSON.stringify(err));
-      try { await sendWhatsApp(from, "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"); }
-      catch (sendErr) { console.error("[webhook] Error sending error message:", sendErr?.message || sendErr); }
-    }
-    console.log(`[webhook] Async task finished for ${from}`);
-  })();
-  try {
-    waitUntil(bgTask);
-    console.log(`[webhook] waitUntil registered successfully`);
-  } catch (wuErr) {
-    console.error("[webhook] waitUntil failed:", wuErr?.message || wuErr);
+  } catch (err) {
+    console.error("[webhook] Error in main flow:", err?.message || err, JSON.stringify(err));
+    try { await sendWhatsApp(from, "מצטערת, נתקלתי בבעיה טכנית. נסי שוב בעוד כמה דקות 🌙"); }
+    catch (sendErr) { console.error("[webhook] Error sending error message:", sendErr?.message || sendErr); }
   }
+  console.log(`[webhook] Done processing for ${from}`);
+  res.set("Content-Type", "text/xml");
+  res.send("<Response></Response>");
 });
 
 // Temporary debug endpoint — remove after fixing phone format issue
