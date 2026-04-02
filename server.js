@@ -832,26 +832,36 @@ app.post("/webhook", async (req, res) => {
       const freeCount = user?.free_messages_count || 0;
       console.log(`[webhook] isPremium=${isPremium}, planStarted=${planStarted}, freeCount=${freeCount}`);
 
-      // If not premium and plan was sent, count messages
-      if (!isPremium && planStarted && freeCount >= FREE_MESSAGE_LIMIT) {
+      // Step 5 — Premium user: answer freely, no limits
+      if (isPremium) {
+        const reply = await askClaude(from, incomingMsg);
+        await sendWhatsApp(from, reply);
+        return;
+      }
+
+      // Step 4 — Plan sent + 5 free messages used: block with payment link
+      if (planStarted && freeCount >= FREE_MESSAGE_LIMIT) {
         await sendWhatsApp(from, PAYMENT_LINK_MSG);
         return;
       }
 
+      // Step 3 — Plan sent + still has free messages: answer + increment
+      if (planStarted) {
+        const reply = await askClaude(from, incomingMsg);
+        await sendWhatsApp(from, reply);
+        await supabase.from("users").update({ free_messages_count: freeCount + 1 }).eq("whatsapp_number", from);
+        return;
+      }
+
+      // Step 1 — Questionnaire phase (no plan yet): answer freely
       const reply = await askClaude(from, incomingMsg);
       await sendWhatsApp(from, reply);
 
-      // Increment free message count for non-premium users after plan started
-      if (!isPremium && planStarted) {
-        await supabase.from("users").update({ free_messages_count: freeCount + 1 }).eq("whatsapp_number", from);
-      }
-
-      // Detect if plan was just sent by checking if schedule exists now
-      if (!isPremium && !planStarted) {
-        const { data: schedule } = await supabase.from("schedules").select("phone_number").eq("phone_number", from).single();
-        if (schedule) {
-          await supabase.from("users").update({ plan_started: true }).eq("whatsapp_number", from);
-        }
+      // Step 2 — Check if plan was just sent by save_schedule
+      const { data: schedule } = await supabase.from("schedules").select("phone_number").eq("phone_number", from).maybeSingle();
+      if (schedule) {
+        await supabase.from("users").update({ plan_started: true, free_messages_count: 0 }).eq("whatsapp_number", from);
+        await sendWhatsApp(from, "כדי להמשיך את הליווי — ninababysleep.com/payment.html — 249₪ לחודש 💜");
       }
     } catch (err) {
       console.error("Error:", err);
